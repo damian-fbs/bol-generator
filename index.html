@@ -11,15 +11,14 @@
     --bg: #f5f5f3; --surface: #ffffff; --surface-alt: #f9f9f8;
     --border: #e2e2de; --border-strong: #c8c8c3; --text: #1a1a18;
     --text-secondary: #6b6b67; --text-muted: #9e9e9a; --accent: #1a56db;
-    --accent-bg: #eff4ff; --accent-border: #a4bcfd; --success: #057a55;
-    --radius: 8px;
+    --accent-bg: #eff4ff; --success: #057a55; --radius: 8px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #111110; --surface: #1c1c1a; --surface-alt: #242422;
       --border: #2e2e2b; --border-strong: #3e3e3a; --text: #e8e8e4;
       --text-secondary: #9e9e9a; --text-muted: #6b6b67; --accent: #6b8ef5;
-      --accent-bg: #1a2240; --accent-border: #3a5099;
+      --accent-bg: #1a2240;
     }
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
@@ -35,7 +34,6 @@
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 12px; }
   .card-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; display: flex; align-items: center; gap: 7px; }
   .card-title svg { width: 14px; height: 14px; opacity: 0.7; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
   .party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
@@ -104,8 +102,8 @@
     BOL Generator
   </a>
   <div class="header-actions">
-    <button class="btn btn-secondary" onclick="clearForm()" style="padding: 6px 14px; font-size: 13px;">Clear</button>
-    <button class="btn btn-primary" onclick="generateBOL()" style="padding: 6px 14px; font-size: 13px;">
+    <button class="btn btn-secondary" onclick="clearForm()" style="padding:6px 14px;font-size:13px;">Clear</button>
+    <button class="btn btn-primary" onclick="generateBOL()" style="padding:6px 14px;font-size:13px;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Download PDF
     </button>
@@ -130,7 +128,7 @@
       <div class="field">
         <label for="pro-number">PRO number</label>
         <input type="text" id="pro-number" placeholder="Assigned at pickup">
-        <span style="font-size:11px; color:var(--text-muted);">A sticker box for the carrier appears on the PDF</span>
+        <span style="font-size:11px;color:var(--text-muted);">Sticker box appears on the PDF</span>
       </div>
     </div>
     <div class="grid-3" style="margin-top:4px;">
@@ -259,10 +257,10 @@ function addRow() {
     <td><select style="width:96px;">${PKG_TYPES.map(p=>`<option>${p}</option>`).join('')}</select></td>
     <td><input type="text" placeholder="e.g. Auto parts, boxed"></td>
     <td><input type="number" min="0" step="0.1" placeholder="0" oninput="recalc()" style="width:82px;"></td>
-    <td><input type="text" placeholder='48×40×60' style="width:92px;"></td>
+    <td><input type="text" placeholder="48x40x60" style="width:92px;"></td>
     <td><select style="width:66px;">${CLASSES.map(c=>`<option>${c}</option>`).join('')}</select></td>
     <td><input type="text" placeholder="e.g. 156600" style="width:82px;"></td>
-    <td><button class="remove-btn" onclick="removeRow('${id}')" aria-label="Remove row" title="Remove">×</button></td>
+    <td><button class="remove-btn" onclick="removeRow('${id}')" aria-label="Remove row" title="Remove">x</button></td>
   `;
   tbody.appendChild(tr);
   recalc();
@@ -278,7 +276,7 @@ function recalc() {
     weight += parseFloat(inputs[1]?.value) || 0;
   });
   document.getElementById('total-units').value = units || '';
-  document.getElementById('total-weight').value = weight ? weight.toLocaleString(undefined, {maximumFractionDigits:1}) : '';
+  document.getElementById('total-weight').value = weight ? weight.toLocaleString(undefined,{maximumFractionDigits:1}) : '';
 }
 
 function v(id) { return (document.getElementById(id)?.value || '').trim(); }
@@ -303,253 +301,271 @@ function showStatus() {
 }
 
 function generateBOL() {
-  if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
+  if (typeof window.jspdf === 'undefined') {
     alert('PDF library is still loading. Please wait a moment and try again.');
     return;
   }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-  const PW = 215.9, PH = 279.4, ML = 14, MR = 14, MT = 14;
-  const CW = PW - ML - MR;
+  const PW = 215.9, PH = 279.4, ML = 14, MT = 14;
+  const CW = PW - ML * 2;
   let y = MT;
 
-  const fill  = (r,g,b)     => doc.setFillColor(r,g,b);
-  const strok = (r,g,b)     => doc.setDrawColor(r,g,b);
-  const rgb   = (r,g,b)     => doc.setTextColor(r,g,b);
-  const fw    = (w)         => doc.setFont(undefined, w);
-  const fs    = (s)         => doc.setFontSize(s);
-  const tx    = (t,x,yy,o) => doc.text(String(t||''), x, yy, o||{});
-  const box   = (x,yy,w,h,s)=> doc.rect(x,yy,w,h,s||'S');
+  // helpers
+  const F  = (r,g,b) => doc.setFillColor(r,g,b);
+  const S  = (r,g,b) => doc.setDrawColor(r,g,b);
+  const C  = (r,g,b) => doc.setTextColor(r,g,b);
+  const fw = w => doc.setFont(undefined, w);
+  const fs = s => doc.setFontSize(s);
+  const tx = (t,x,y,o) => doc.text(String(t||''), x, y, o||{});
+  const bx = (x,y,w,h,s) => doc.rect(x,y,w,h,s||'S');
+  const lw = w => doc.setLineWidth(w);
 
-  const sectionLabel = (label, x, yy, w, h=5.5) => {
-    fill(240,240,238); strok(220,220,216); doc.setLineWidth(0.15);
-    box(x, yy, w, h, 'FD');
-    fs(6.5); fw('bold'); rgb(110,110,105);
-    tx(label, x+3, yy+h-1.5);
-    doc.setLineWidth(0.25); strok(0,0,0);
-  };
-
-  const fieldCell = (label, value, x, yy, w, h=14) => {
-    strok(210,210,205); doc.setLineWidth(0.2);
-    box(x, yy, w, h, 'S');
-    fs(6.5); fw('bold'); rgb(130,130,125);
-    tx(label, x+3, yy+4.5);
-    fs(9); fw('normal'); rgb(20,20,18);
-    tx((doc.splitTextToSize(value||'—', w-5))[0]||'—', x+3, yy+10.5);
-    doc.setLineWidth(0.25); strok(0,0,0);
-  };
-
-  doc.setLineWidth(0.25); strok(0,0,0);
-
-  // ── HEADER: three zones [TITLE | BOL#+DATE | PRO STICKER] ────────
-  const HDR_H = 28;
-  const titleW = CW * 0.38;
-  const metaW  = CW * 0.24;
-  const proW   = CW - titleW - metaW;
-
-  const bolNum = v('bol-number') || '—';
+  // Formatted date
+  const bolNum = v('bol-number') || 'N/A';
   const shipDate = (() => {
     const raw = v('ship-date');
-    if (!raw) return '—';
-    const [yr, mo, da] = raw.split('-');
-    return `${mo}/${da}/${yr}`;
+    if (!raw) return 'N/A';
+    const [yr,mo,da] = raw.split('-');
+    return mo+'/'+da+'/'+yr;
   })();
   const shipType = v('shipment-type') || 'Straight (non-negotiable)';
+  const carrierName = v('carrier-name') || '';
+
+  // ── HEADER: three zones ──────────────────────────────────────────
+  const HDR = 30;
+  const tW = CW * 0.40;  // title zone
+  const mW = CW * 0.23;  // BOL#/date zone
+  const pW = CW - tW - mW; // PRO sticker zone
 
   // Zone 1 — dark title
-  fill(22,22,20); box(ML, y, titleW, HDR_H, 'F');
-  fs(13); fw('bold'); rgb(255,255,255);
-  tx('BILL OF LADING', ML+5, y+11);
-  fs(7); fw('normal'); rgb(165,165,160);
-  tx(shipType.toUpperCase(), ML+5, y+17.5);
-  fs(6.5); rgb(120,120,115);
-  tx('CARRIER: ' + (v('carrier-name')||'—'), ML+5, y+23.5);
+  lw(0.1); F(22,22,20); bx(ML, y, tW, HDR, 'F');
+  fs(13); fw('bold'); C(255,255,255);
+  tx('BILL OF LADING', ML+4, y+10);
+  fs(7); fw('normal'); C(160,160,155);
+  tx(shipType.toUpperCase(), ML+4, y+17);
+  fs(6.5); C(115,115,110);
+  tx('CARRIER: ' + (carrierName||'—'), ML+4, y+23.5);
 
-  // Zone 2 — BOL # and date
-  const metaX = ML + titleW;
-  fill(252,252,250); strok(210,210,205); doc.setLineWidth(0.2);
-  box(metaX, y, metaW, HDR_H, 'FD');
-  fs(6.5); fw('bold'); rgb(120,120,115);
-  tx('BOL NUMBER', metaX+3, y+5.5);
-  fs(10); fw('bold'); rgb(22,22,20);
-  tx(bolNum, metaX+3, y+12);
-  fs(6.5); fw('bold'); rgb(120,120,115);
-  tx('SHIP DATE', metaX+3, y+18);
-  fs(9.5); fw('bold'); rgb(22,22,20);
-  tx(shipDate, metaX+3, y+24.5);
+  // Zone 2 — BOL # and date, white bg
+  const mX = ML + tW;
+  lw(0.2); F(253,253,251); S(205,205,200); bx(mX, y, mW, HDR, 'FD');
+  fs(6.5); fw('bold'); C(118,118,112);
+  tx('BOL NUMBER', mX+3, y+6);
+  fs(11); fw('bold'); C(20,20,18);
+  tx(bolNum, mX+3, y+13.5);
+  fs(6.5); fw('bold'); C(118,118,112);
+  tx('SHIP DATE', mX+3, y+19.5);
+  fs(10); fw('bold'); C(20,20,18);
+  tx(shipDate, mX+3, y+27);
 
-  // Zone 3 — PRO sticker
-  const proX = ML + titleW + metaW;
-  doc.setLineDashPattern([1.5, 1.2], 0);
-  strok(148,148,143); doc.setLineWidth(0.5);
-  box(proX, y, proW, HDR_H, 'S');
-  doc.setLineDashPattern([], 0);
-  doc.setLineWidth(0.15); strok(210,210,205);
-  fill(248,248,245); box(proX, y, proW, 5.5, 'FD');
-  fs(6.5); fw('bold'); rgb(110,110,105);
-  tx('PRO NUMBER — AFFIX STICKER HERE', proX+3, y+4);
-  const proLineY = y + HDR_H - 7;
-  doc.setLineWidth(0.2); strok(195,195,190);
-  doc.line(proX+4, proLineY, proX+proW-4, proLineY);
-  rgb(175,175,170); fs(6.5); fw('normal');
-  tx('Write PRO # if no sticker', proX+4, proLineY+3.8);
+  // Zone 3 — PRO sticker (dashed)
+  const pX = ML + tW + mW;
+  doc.setLineDashPattern([2,1.2], 0); S(145,145,140); lw(0.5);
+  bx(pX, y, pW, HDR, 'S');
+  doc.setLineDashPattern([],0); lw(0.15); S(205,205,200);
+  F(249,249,246); bx(pX, y, pW, 6, 'FD');
+  fs(6.5); fw('bold'); C(108,108,102);
+  tx('PRO NUMBER  —  AFFIX STICKER HERE', pX+3, y+4.5);
+  // write-in fallback line
+  lw(0.2); S(195,195,190);
+  doc.line(pX+4, y+HDR-7, pX+pW-4, y+HDR-7);
+  C(172,172,167); fs(6.5); fw('normal');
+  tx('Write PRO # if no sticker available', pX+4, y+HDR-3.5);
 
-  doc.setLineWidth(0.25); strok(0,0,0); rgb(20,20,18);
-  y += HDR_H + 2;
+  lw(0.25); S(0,0,0); C(20,20,18);
+  y += HDR + 2;
 
-  // ── META ROW ─────────────────────────────────────────────────────
-  const mCols = [CW*0.30, CW*0.26, CW*0.22, CW*0.22];
-  const mLabels = ['CARRIER NAME', 'PO / REFERENCE #', 'SHIPMENT TYPE', 'DECLARED VALUE'];
-  const mVals = [v('carrier-name'), v('po-number'), shipType, v('declared-value') ? '$'+Number(v('declared-value')).toLocaleString() : ''];
-  let mx = ML;
-  mCols.forEach((w,i) => { fieldCell(mLabels[i], mVals[i], mx, y, w); mx += w; });
+  // ── META ROW ────────────────────────────────────────────────────
+  const mc = [CW*0.30, CW*0.26, CW*0.22, CW*0.22];
+  const ml = ['CARRIER NAME','PO / REFERENCE #','SHIPMENT TYPE','DECLARED VALUE'];
+  const mv = [
+    carrierName,
+    v('po-number'),
+    shipType,
+    v('declared-value') ? '$'+Number(v('declared-value')).toLocaleString() : ''
+  ];
+  let mx2 = ML;
+  mc.forEach((w,i) => {
+    lw(0.2); S(205,205,200); bx(mx2, y, w, 14, 'S');
+    fs(6.5); fw('bold'); C(128,128,122);
+    tx(ml[i], mx2+3, y+4.5);
+    fs(9); fw('normal'); C(20,20,18);
+    tx(doc.splitTextToSize(mv[i]||'—', w-5)[0]||'—', mx2+3, y+11);
+    mx2 += w;
+  });
+  lw(0.25); S(0,0,0);
   y += 16;
 
-  // ── SHIPPER & CONSIGNEE ──────────────────────────────────────────
-  const halfW = CW / 2;
-  const parties = [
+  // ── SHIPPER & CONSIGNEE ─────────────────────────────────────────
+  // Draw boxes first, then text on top
+  const hW = CW / 2;
+  const partyH = 44;
+  const pData = [
     { label:'SHIPPER / FROM', name:v('ship-name'), addr:v('ship-addr'), city:v('ship-city'), state:v('ship-state'), zip:v('ship-zip'), phone:v('ship-phone') },
     { label:'CONSIGNEE / TO', name:v('cons-name'), addr:v('cons-addr'), city:v('cons-city'), state:v('cons-state'), zip:v('cons-zip'), phone:v('cons-phone') },
   ];
-  const partyH = 40;
-  parties.forEach((p, i) => {
-    const px = ML + i * halfW;
-    sectionLabel(p.label, px, y, halfW, 5.5);
-    strok(210,210,205); doc.setLineWidth(0.2);
-    box(px, y+5.5, halfW, partyH-5.5, 'S');
-    doc.setLineWidth(0.25); strok(0,0,0);
-    let ly = y + 11;
-    if (p.name) { fs(10); fw('bold'); rgb(20,20,18); tx(p.name, px+3, ly); fw('normal'); ly += 6; }
-    fs(8.5); rgb(40,40,38);
+
+  pData.forEach((p, i) => {
+    const px = ML + i * hW;
+    // label bar
+    lw(0.15); F(238,238,235); S(215,215,210); bx(px, y, hW, 6, 'FD');
+    fs(6.5); fw('bold'); C(108,108,102);
+    tx(p.label, px+3, y+4.5);
+    // content box
+    lw(0.2); S(205,205,200); bx(px, y+6, hW, partyH-6, 'S');
+    // text content
+    lw(0.25); S(0,0,0); C(20,20,18);
+    let ly = y + 13;
+    if (p.name) { fs(10); fw('bold'); tx(p.name, px+3, ly); fw('normal'); ly += 6.5; }
+    fs(8.5); C(38,38,36);
     if (p.addr) { tx(p.addr, px+3, ly); ly += 5; }
-    const cityLine = [p.city, p.state].filter(Boolean).join(', ') + (p.zip ? '  '+p.zip : '');
-    if (cityLine.trim()) { tx(cityLine, px+3, ly); ly += 5; }
-    if (p.phone) { rgb(110,110,105); fs(8); tx('Tel: '+p.phone, px+3, ly); rgb(20,20,18); }
+    const cl = [p.city, p.state].filter(Boolean).join(', ') + (p.zip ? '  '+p.zip : '');
+    if (cl.trim()) { tx(cl, px+3, ly); ly += 5; }
+    if (p.phone) { C(108,108,102); fs(8); tx('Tel: '+p.phone, px+3, ly); }
+    C(20,20,18);
   });
   y += partyH + 3;
 
   // ── FREIGHT TABLE ────────────────────────────────────────────────
-  sectionLabel('FREIGHT DETAILS', ML, y, CW, 5.5);
-  y += 5.5;
-  const fCols = [13, 20, 0, 22, 24, 14, 24];
-  fCols[2] = CW - fCols.reduce((a,b)=>a+b,0);
-  const fX = [ML];
-  fCols.forEach((w,i) => fX.push(fX[i]+w));
-  const fHeaders = ['UNITS','PKG TYPE','COMMODITY DESCRIPTION','WT (LBS)','DIMENSIONS','CLASS','NMFC'];
-
-  fill(235,235,232); strok(210,210,205); doc.setLineWidth(0.15);
-  box(ML, y, CW, 6, 'FD');
-  fs(6.5); fw('bold'); rgb(100,100,95);
-  fHeaders.forEach((h,i) => tx(h, fX[i]+2, y+4.3));
-  doc.setLineWidth(0.25); strok(0,0,0);
+  // Section label
+  lw(0.15); F(238,238,235); S(215,215,210); bx(ML, y, CW, 6, 'FD');
+  fs(6.5); fw('bold'); C(108,108,102); tx('FREIGHT DETAILS', ML+3, y+4.5);
+  lw(0.25); S(0,0,0); C(20,20,18);
   y += 6;
 
-  const freightRows = document.querySelectorAll('#freight-tbody tr');
+  const fC = [13, 20, 0, 22, 24, 14, 24];
+  fC[2] = CW - fC.reduce((a,b)=>a+b,0);
+  const fX = [ML];
+  fC.forEach((w,i) => fX.push(fX[i]+w));
+  const fH = ['UNITS','PKG TYPE','COMMODITY DESCRIPTION','WT (LBS)','DIMENSIONS','CLASS','NMFC'];
+
+  // header row
+  lw(0.1); F(232,232,229); S(205,205,200); bx(ML, y, CW, 6.5, 'FD');
+  fs(6.5); fw('bold'); C(98,98,92);
+  fH.forEach((h,i) => tx(h, fX[i]+2, y+4.7));
+  lw(0.25); S(0,0,0); C(20,20,18);
+  y += 6.5;
+
+  // data rows - only rows with actual content
+  const fRows = document.querySelectorAll('#freight-tbody tr');
   const rowH = 8;
-  rgb(20,20,18); fw('normal'); fs(8.5);
-  freightRows.forEach((row, ri) => {
+  let hasRows = false;
+
+  fRows.forEach((row, ri) => {
     const inp = row.querySelectorAll('input');
     const sel = row.querySelectorAll('select');
-    const cells = [inp[0]?.value||'', sel[0]?.value||'', inp[1]?.value||'', inp[2]?.value ? Number(inp[2].value).toLocaleString() : '', inp[3]?.value||'', sel[1]?.value||'', inp[4]?.value||''];
-    if (ri%2===0) { fill(252,252,250); strok(235,235,232); doc.setLineWidth(0.1); box(ML,y,CW,rowH,'FD'); }
-    doc.setLineWidth(0.15); strok(210,210,205);
+    const units  = inp[0]?.value || '';
+    const desc   = inp[1]?.value || '';
+    const wt     = inp[2]?.value || '';
+    const dims   = inp[3]?.value || '';
+    const nmfc   = inp[4]?.value || '';
+    const pkg    = sel[0]?.value || '';
+    const cls    = sel[1]?.value || '';
+    // skip completely empty rows (no units, no description, no weight)
+    if (!units && !desc && !wt) return;
+    hasRows = true;
+    const cells = [units, pkg, desc, wt ? Number(wt).toLocaleString() : '', dims, cls, nmfc];
+    if (ri%2===0) { lw(0.1); F(252,252,250); S(232,232,229); bx(ML,y,CW,rowH,'FD'); }
+    lw(0.15); S(205,205,200);
     doc.line(ML, y+rowH, ML+CW, y+rowH);
-    fCols.forEach((cw,i) => { if (i>0) doc.line(fX[i],y,fX[i],y+rowH); });
-    doc.setLineWidth(0.25); strok(0,0,0); rgb(20,20,18); fs(8.5);
-    cells.forEach((c,i) => { tx((doc.splitTextToSize(c, fCols[i]-4))[0]||'', fX[i]+2, y+5.5); });
+    fC.forEach((cw,i) => { if(i>0) doc.line(fX[i],y,fX[i],y+rowH); });
+    lw(0.25); S(0,0,0); C(20,20,18); fs(8.5); fw('normal');
+    cells.forEach((c,i) => { tx(doc.splitTextToSize(c,fC[i]-4)[0]||'', fX[i]+2, y+5.5); });
     y += rowH;
   });
 
-  if (!freightRows.length) {
-    strok(210,210,205); doc.setLineWidth(0.15); box(ML,y,CW,rowH,'S');
-    rgb(170,170,165); fs(8); tx('No freight line items entered', ML+3, y+5.5);
-    rgb(20,20,18); doc.setLineWidth(0.25); strok(0,0,0); y += rowH;
+  if (!hasRows) {
+    lw(0.15); S(205,205,200); bx(ML,y,CW,rowH,'S');
+    C(168,168,162); fs(8); tx('No freight line items entered', ML+3, y+5.5);
+    lw(0.25); S(0,0,0); C(20,20,18); y += rowH;
   }
 
-  // ── TOTALS BAR ───────────────────────────────────────────────────
+  // totals bar
   y += 1;
-  fill(240,240,238); strok(210,210,205); doc.setLineWidth(0.2);
-  box(ML, y, CW, 8, 'FD');
-  fs(7.5); fw('bold'); rgb(80,80,75);
-  const totalU = v('total-units'), totalW = v('total-weight'), dv = v('declared-value');
-  tx('TOTAL UNITS: '+(totalU||'—'), ML+3, y+5.3);
-  tx('TOTAL WEIGHT: '+(totalW ? totalW+' lbs' : '—'), ML+45, y+5.3);
-  if (dv) tx('DECLARED VALUE: $'+Number(dv).toLocaleString(), ML+110, y+5.3);
-  doc.setLineWidth(0.25); strok(0,0,0); rgb(20,20,18);
+  lw(0.2); F(238,238,235); S(205,205,200); bx(ML,y,CW,8,'FD');
+  fs(7.5); fw('bold'); C(78,78,73);
+  const tU = v('total-units'), tW2 = v('total-weight'), dVal = v('declared-value');
+  tx('TOTAL UNITS: '+(tU||'—'), ML+3, y+5.5);
+  tx('TOTAL WEIGHT: '+(tW2 ? tW2+' lbs' : '—'), ML+45, y+5.5);
+  if (dVal) tx('DECLARED VALUE: $'+Number(dVal).toLocaleString(), ML+110, y+5.5);
+  lw(0.25); S(0,0,0); C(20,20,18);
   y += 11;
 
-  // ── ACCESSORIALS ─────────────────────────────────────────────────
+  // ── ACCESSORIALS ────────────────────────────────────────────────
   const accItems = [
     ['acc-liftgate','Liftgate required'],['acc-appt','Appointment required'],
     ['acc-hazmat','HAZARDOUS MATERIALS'],['acc-residential','Residential delivery'],
     ['acc-inside','Inside delivery'],['acc-freeze','Protect from freeze'],
   ].filter(([id]) => chk(id)).map(([,label]) => label);
-  const specialInstr = v('special-instructions');
+  const specInstr = v('special-instructions');
 
-  if (accItems.length || specialInstr) {
-    sectionLabel('ACCESSORIALS & SPECIAL INSTRUCTIONS', ML, y, CW, 5.5);
-    y += 5.5;
-    strok(210,210,205); doc.setLineWidth(0.2);
-    const accContentH = (accItems.length ? 7 : 0) + (specialInstr ? Math.ceil(doc.splitTextToSize(specialInstr, CW-6).length * 4.5)+4 : 0);
-    box(ML, y, CW, Math.max(accContentH, 10), 'S');
-    doc.setLineWidth(0.25); strok(0,0,0);
-    let ay = y + 6;
+  if (accItems.length || specInstr) {
+    lw(0.15); F(238,238,235); S(215,215,210); bx(ML, y, CW, 6, 'FD');
+    fs(6.5); fw('bold'); C(108,108,102); tx('ACCESSORIALS & SPECIAL INSTRUCTIONS', ML+3, y+4.5);
+    lw(0.25); S(0,0,0); C(20,20,18);
+    y += 6;
+    const aH = (accItems.length ? 8 : 0) + (specInstr ? doc.splitTextToSize(specInstr,CW-6).length*4.5+4 : 0);
+    lw(0.2); S(205,205,200); bx(ML,y,CW,Math.max(aH,10),'S'); lw(0.25); S(0,0,0);
+    let ay = y+7;
     if (accItems.length) {
-      accItems.forEach((item, idx) => {
-        const ix = ML + 3 + idx * (CW / accItems.length);
-        fill(22,22,20); box(ix, ay-3.5, 3, 3, 'F');
-        rgb(255,255,255); fs(5.5); tx('✓', ix+0.5, ay-1.2);
-        rgb(20,20,18); fs(8); fw('normal'); tx(item, ix+4.5, ay-0.8);
+      accItems.forEach((item,idx) => {
+        const ix = ML+3 + idx*(CW/accItems.length);
+        F(22,22,20); bx(ix, ay-3.5, 3, 3, 'F');
+        C(255,255,255); fs(5.5); tx('v', ix+0.8, ay-1);
+        C(20,20,18); fs(8); fw('normal'); tx(item, ix+4.5, ay-0.5);
       });
-      ay += 6;
+      ay += 7;
     }
-    if (specialInstr) {
-      fs(8.5); fw('normal'); rgb(40,40,38);
-      doc.splitTextToSize(specialInstr, CW-6).forEach(l => { tx(l, ML+3, ay); ay += 4.5; });
+    if (specInstr) {
+      fs(8.5); fw('normal'); C(38,38,36);
+      doc.splitTextToSize(specInstr,CW-6).forEach(l => { tx(l,ML+3,ay); ay+=4.5; });
     }
-    y += Math.max(accContentH, 10) + 3;
+    y += Math.max(aH,10)+3;
   }
 
-  // ── SIGNATURES ───────────────────────────────────────────────────
-  const sigH = 36;
-  if (y + sigH + 20 > PH - MT) { doc.addPage(); y = MT; }
-  sectionLabel('SIGNATURES', ML, y, CW, 5.5);
-  y += 5.5;
-  const sigW = CW / 2;
-  const sigParties = [
-    { label:'Shipper', sub:'Authorized signature confirms freight description is accurate' },
-    { label:'Carrier', sub:'Signature confirms receipt of freight in described condition' },
+  // ── SIGNATURES ──────────────────────────────────────────────────
+  const sigH = 38;
+  if (y+sigH+22 > PH-MT) { doc.addPage(); y = MT; }
+
+  lw(0.15); F(238,238,235); S(215,215,210); bx(ML, y, CW, 6, 'FD');
+  fs(6.5); fw('bold'); C(108,108,102); tx('SIGNATURES', ML+3, y+4.5);
+  lw(0.25); S(0,0,0); C(20,20,18);
+  y += 6;
+
+  const sW = CW / 2;
+  const sigs = [
+    { label:'Shipper', note:'Authorized signature confirms freight description is accurate' },
+    { label:'Carrier', note:'Signature confirms receipt of freight in described condition' },
   ];
-  strok(210,210,205); doc.setLineWidth(0.2);
-  sigParties.forEach((p, i) => {
-    const sx = ML + i * sigW;
-    box(sx, y, sigW, sigH, 'S');
-    fs(8.5); fw('bold'); rgb(20,20,18); tx(p.label, sx+3, y+6);
-    fs(6.5); fw('normal'); rgb(140,140,135);
-    doc.splitTextToSize(p.sub, sigW-6).forEach((l,li) => tx(l, sx+3, y+10.5+(li*3.5)));
-    const sigLineY = y + sigH - 13;
-    rgb(200,200,195); doc.line(sx+3, sigLineY, sx+sigW-3, sigLineY);
-    rgb(130,130,125); fs(7); tx('Signature & printed name', sx+3, sigLineY+3.5);
-    const dateLineY = y + sigH - 5;
-    rgb(200,200,195); doc.line(sx+3, dateLineY, sx+sigW/2, dateLineY);
-    rgb(130,130,125); fs(7); tx('Date', sx+3, dateLineY+3.5);
-    rgb(20,20,18);
+  lw(0.2); S(205,205,200);
+  sigs.forEach((s,i) => {
+    const sx = ML + i*sW;
+    bx(sx, y, sW, sigH, 'S');
+    fs(9); fw('bold'); C(20,20,18); tx(s.label, sx+4, y+7);
+    fs(6.5); fw('normal'); C(138,138,132);
+    doc.splitTextToSize(s.note, sW-8).forEach((l,li) => tx(l, sx+4, y+13+(li*3.8)));
+    // signature line
+    const sl = y+sigH-14; S(195,195,190); doc.line(sx+4,sl,sx+sW-4,sl);
+    C(128,128,122); fs(7); tx('Signature & printed name', sx+4, sl+4);
+    // date line
+    const dl = y+sigH-5; doc.line(sx+4,dl,sx+sW/2,dl);
+    tx('Date', sx+4, dl+4);
+    C(20,20,18);
   });
-  doc.setLineWidth(0.25); strok(0,0,0);
-  y += sigH + 5;
+  lw(0.25); S(0,0,0);
+  y += sigH+5;
 
-  // ── LEGAL FOOTER ─────────────────────────────────────────────────
-  if (y + 12 > PH - MT) { doc.addPage(); y = MT; }
-  strok(210,210,205); doc.setLineWidth(0.15);
-  doc.line(ML, y, ML+CW, y);
-  y += 3;
-  fs(6); fw('normal'); rgb(160,160,155);
+  // ── LEGAL FOOTER ────────────────────────────────────────────────
+  if (y+16 > PH-MT) { doc.addPage(); y = MT; }
+  lw(0.15); S(205,205,200); doc.line(ML,y,ML+CW,y); y+=3;
+  fs(5.8); fw('normal'); C(155,155,150);
   const notice = 'NOTE: Liability Limitation for loss or damage in this shipment may be applicable. See 49 U.S.C. 14706(c)(1)(A) and (B). RECEIVED, subject to individually determined rates or contracts that have been agreed upon in writing between the carrier and shipper, if applicable, otherwise to the rates, classifications and rules that have been established by the carrier and are available to the shipper on request. The property described above, in apparent good order, except as noted (contents and condition of contents of packages unknown), marked, consigned, and destined as shown above, which said carrier agrees to carry to destination, if on its route, or otherwise deliver to another carrier on the route to destination. Every service to be performed hereunder shall be subject to all bill of lading terms and conditions in the governing classification on the date of shipment. Shipper hereby certifies that he is familiar with all the bill of lading terms and conditions in the governing classification and the said terms and conditions are hereby agreed to by the shipper and accepted for himself and his assigns.';
-  doc.splitTextToSize(notice, CW).forEach(l => { tx(l, ML, y); y += 3.2; });
+  doc.splitTextToSize(notice, CW).forEach(l => { tx(l,ML,y); y+=3.2; });
 
-  // ── SAVE ─────────────────────────────────────────────────────────
-  const filename = (bolNum !== '—' ? bolNum : 'BOL') + '_' + (v('ship-date') || 'undated') + '.pdf';
-  doc.save(filename);
+  // save
+  const fname = (bolNum!=='N/A'?bolNum:'BOL')+'_'+(v('ship-date')||'undated')+'.pdf';
+  doc.save(fname);
   showStatus();
 }
 
