@@ -93,7 +93,9 @@
     padding: 32px 24px 64px;
   }
 
-  .page-header { margin-bottom: 28px; }
+  .page-header {
+    margin-bottom: 28px;
+  }
 
   .page-header h1 {
     font-size: 22px;
@@ -102,7 +104,10 @@
     margin-bottom: 4px;
   }
 
-  .page-header p { color: var(--text-secondary); font-size: 14px; }
+  .page-header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
 
   .card {
     background: var(--surface);
@@ -124,7 +129,11 @@
     gap: 7px;
   }
 
-  .card-title svg { width: 14px; height: 14px; opacity: 0.7; }
+  .card-title svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+  }
 
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
@@ -222,7 +231,9 @@
     white-space: nowrap;
   }
 
-  tbody td { padding: 3px 4px; }
+  tbody td {
+    padding: 3px 4px;
+  }
 
   tbody td input, tbody td select {
     height: 30px;
@@ -280,7 +291,11 @@
     margin-bottom: 14px;
   }
 
-  .check-item { display: flex; align-items: center; gap: 8px; }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
   .check-item input[type=checkbox] {
     width: 15px;
@@ -319,8 +334,14 @@
     white-space: nowrap;
   }
 
-  .btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .btn-primary {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+
   .btn-primary:hover { opacity: 0.85; }
+
   .btn-primary:active { transform: scale(0.98); }
 
   .btn-secondary {
@@ -384,6 +405,7 @@
     <p>Fill in the shipment details below, then download a print-ready PDF.</p>
   </div>
 
+  <!-- BOL Details -->
   <div class="card">
     <div class="card-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -428,6 +450,7 @@
     </div>
   </div>
 
+  <!-- Shipper + Consignee -->
   <div class="party-grid">
     <div class="card">
       <div class="card-title">
@@ -460,6 +483,7 @@
     </div>
   </div>
 
+  <!-- Freight -->
   <div class="card">
     <div class="card-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
@@ -489,10 +513,11 @@
     <div class="totals-row">
       <div class="field"><label>Total handling units</label><input type="text" id="total-units" readonly placeholder="—"></div>
       <div class="field"><label>Total weight (lbs)</label><input type="text" id="total-weight" readonly placeholder="—"></div>
-      <div class="field"></div>
+      <div class="field"><label></label></div>
     </div>
   </div>
 
+  <!-- Accessorials -->
   <div class="card">
     <div class="card-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -512,6 +537,7 @@
     </div>
   </div>
 
+  <!-- Actions -->
   <div class="actions">
     <button class="btn btn-primary" onclick="generateBOL()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -602,6 +628,7 @@ function generateBOL() {
   const CW = PW - ML - MR;
   let y = MT;
 
+  // ── Drawing helpers ───────────────────────────────────────────────
   const fill  = (r,g,b)      => doc.setFillColor(r,g,b);
   const strok = (r,g,b)      => doc.setDrawColor(r,g,b);
   const rgb   = (r,g,b)      => doc.setTextColor(r,g,b);
@@ -609,7 +636,9 @@ function generateBOL() {
   const fs    = (s)          => doc.setFontSize(s);
   const tx    = (t,x,yy,o)  => doc.text(String(t||''), x, yy, o||{});
   const box   = (x,yy,w,h,s)=> doc.rect(x,yy,w,h,s||'S');
+  const hline = (x1,y1,x2)  => { strok(210,210,205); doc.line(x1,y1,x2,y1); strok(0,0,0); };
 
+  // Section label helper — grey pill header
   const sectionLabel = (label, x, yy, w, h=5.5) => {
     fill(240,240,238); strok(220,220,216);
     doc.setLineWidth(0.15);
@@ -620,6 +649,7 @@ function generateBOL() {
     strok(0,0,0);
   };
 
+  // Field cell: label + value inside a bordered box
   const fieldCell = (label, value, x, yy, w, h=14) => {
     strok(210,210,205); doc.setLineWidth(0.2);
     box(x, yy, w, h, 'S');
@@ -634,52 +664,72 @@ function generateBOL() {
   doc.setLineWidth(0.25);
   strok(0,0,0);
 
-  // ── HEADER ───────────────────────────────────────────────────────
-  fill(22,22,20);
-  box(ML, y, CW * 0.62, 18, 'F');
-  fs(14); fw('bold'); rgb(255,255,255);
-  tx('BILL OF LADING', ML+5, y+10);
-  fs(7.5); fw('normal'); rgb(180,180,175);
-  const shipType = v('shipment-type') || 'Straight (non-negotiable)';
-  tx(shipType.toUpperCase(), ML+5, y+15.5);
+  // ── HEADER — three zones: [TITLE | BOL# + DATE | PRO STICKER] ───
+  const HDR_H = 28;
+  const titleW = CW * 0.38;
+  const metaW  = CW * 0.24;
+  const proW   = CW - titleW - metaW;
 
-  const hRightX = ML + CW*0.62 + 1;
-  const hRightW = CW - CW*0.62 - 1;
-  fill(252,252,250); strok(210,210,205); doc.setLineWidth(0.2);
-  box(hRightX, y, hRightW, 18, 'FD');
-
-  const bolNum = v('bol-number') || '—';
+  const bolNum  = v('bol-number') || '—';
   const shipDate = (() => {
     const raw = v('ship-date');
     if (!raw) return '—';
     const [yr, mo, da] = raw.split('-');
     return `${mo}/${da}/${yr}`;
   })();
+  const shipType = v('shipment-type') || 'Straight (non-negotiable)';
 
-  const col1x = hRightX + 3;
-  const col2x = hRightX + hRightW/2 + 1;
+  // Zone 1 — dark title block
+  fill(22,22,20);
+  box(ML, y, titleW, HDR_H, 'F');
+  fs(13); fw('bold'); rgb(255,255,255);
+  tx('BILL OF LADING', ML+5, y+11);
+  fs(7); fw('normal'); rgb(165,165,160);
+  tx(shipType.toUpperCase(), ML+5, y+17.5);
+  fs(6.5); rgb(120,120,115);
+  tx('CARRIER: ' + (v('carrier-name')||'—'), ML+5, y+23.5);
 
-  fs(6.5); fw('bold'); rgb(130,130,125);
-  tx('BOL NUMBER', col1x, y+4.5);
-  tx('SHIP DATE', col2x, y+4.5);
-
+  // Zone 2 — BOL # and Ship Date stacked
+  const metaX = ML + titleW;
+  fill(252,252,250); strok(210,210,205); doc.setLineWidth(0.2);
+  box(metaX, y, metaW, HDR_H, 'FD');
+  fs(6.5); fw('bold'); rgb(120,120,115);
+  tx('BOL NUMBER', metaX+3, y+5.5);
+  fs(10); fw('bold'); rgb(22,22,20);
+  tx(bolNum, metaX+3, y+12);
+  fs(6.5); fw('bold'); rgb(120,120,115);
+  tx('SHIP DATE', metaX+3, y+18);
   fs(9.5); fw('bold'); rgb(22,22,20);
-  tx(bolNum, col1x, y+10.5);
-  tx(shipDate, col2x, y+10.5);
+  tx(shipDate, metaX+3, y+24.5);
 
-  fs(6.5); fw('normal'); rgb(130,130,125);
-  tx('PRO #: ' + (v('pro-number')||'Assigned at pickup'), col1x, y+15.5);
+  // Zone 3 — PRO sticker (dashed border, carrier fills)
+  const proX = ML + titleW + metaW;
+  doc.setLineDashPattern([1.5, 1.2], 0);
+  strok(148,148,143); doc.setLineWidth(0.5);
+  box(proX, y, proW, HDR_H, 'S');
+  doc.setLineDashPattern([], 0);
+  doc.setLineWidth(0.15); strok(210,210,205);
+  fill(248,248,245);
+  box(proX, y, proW, 5.5, 'FD');
+  fs(6.5); fw('bold'); rgb(110,110,105);
+  tx('PRO NUMBER — AFFIX STICKER HERE', proX+3, y+4);
+  // Write-in line at bottom
+  const proLineY = y + HDR_H - 7;
+  doc.setLineWidth(0.2); strok(195,195,190);
+  doc.line(proX+4, proLineY, proX+proW-4, proLineY);
+  rgb(175,175,170); fs(6.5); fw('normal');
+  tx('Write PRO # if no sticker', proX+4, proLineY+3.8);
 
   doc.setLineWidth(0.25); strok(0,0,0); rgb(20,20,18);
-  y += 21;
+  y += HDR_H + 2;
 
-  // ── CARRIER META ROW ─────────────────────────────────────────────
-  const mCols = [CW*0.32, CW*0.24, CW*0.22, CW*0.22];
+  // ── META ROW ─────────────────────────────────────────────────────
+  const mCols = [CW*0.30, CW*0.26, CW*0.22, CW*0.22];
   const mLabels = ['CARRIER NAME', 'PO / REFERENCE #', 'SHIPMENT TYPE', 'DECLARED VALUE'];
   const mVals = [
     v('carrier-name'),
     v('po-number'),
-    v('shipment-type'),
+    shipType,
     v('declared-value') ? '$' + Number(v('declared-value')).toLocaleString() : ''
   ];
   let mx = ML;
@@ -700,8 +750,12 @@ function generateBOL() {
     strok(210,210,205); doc.setLineWidth(0.2);
     box(px, y + 5.5, halfW, partyH - 5.5, 'S');
     doc.setLineWidth(0.25); strok(0,0,0);
+
     let ly = y + 11;
-    if (p.name) { fs(10); fw('bold'); rgb(20,20,18); tx(p.name, px+3, ly); fw('normal'); ly += 6; }
+    if (p.name) {
+      fs(10); fw('bold'); rgb(20,20,18);
+      tx(p.name, px+3, ly); fw('normal'); ly += 6;
+    }
     fs(8.5); rgb(40,40,38);
     if (p.addr) { tx(p.addr, px+3, ly); ly += 5; }
     const cityLine = [p.city, p.state].filter(Boolean).join(', ') + (p.zip ? '  ' + p.zip : '');
@@ -710,54 +764,18 @@ function generateBOL() {
   });
   y += partyH + 3;
 
-  // ── PRO STICKER BOX ──────────────────────────────────────────────
-  const proBoxH = 22;
-  const proBoxW = CW * 0.42;
-  const proBoxX = ML;
-
-  doc.setLineDashPattern([1.5, 1.2], 0);
-  strok(160,160,155); doc.setLineWidth(0.4);
-  box(proBoxX, y, proBoxW, proBoxH, 'S');
-  doc.setLineDashPattern([], 0);
-  doc.setLineWidth(0.25); strok(0,0,0);
-
-  fill(248,248,245); strok(210,210,205); doc.setLineWidth(0.15);
-  box(proBoxX, y, proBoxW, 5.5, 'FD');
-  fs(6.5); fw('bold'); rgb(110,110,105);
-  tx('CARRIER PRO NUMBER — AFFIX STICKER HERE', proBoxX+3, y+4);
-
-  const proLineY = y + proBoxH - 5;
-  strok(210,210,205); doc.setLineWidth(0.15);
-  doc.line(proBoxX+4, proLineY, proBoxX+proBoxW-4, proLineY);
-  rgb(185,185,180); fs(7);
-  tx('PRO # (if no sticker)', proBoxX+4, proLineY+3.5);
-
-  const carrierBoxX = proBoxX + proBoxW + 3;
-  const carrierBoxW = CW - proBoxW - 3;
-  strok(210,210,205); doc.setLineWidth(0.2);
-  box(carrierBoxX, y, carrierBoxW, proBoxH, 'S');
-  fill(248,248,245);
-  box(carrierBoxX, y, carrierBoxW, 5.5, 'FD');
-  fs(6.5); fw('bold'); rgb(110,110,105);
-  tx('CARRIER / SCAC', carrierBoxX+3, y+4);
-  fs(9); fw('bold'); rgb(22,22,20);
-  tx(v('carrier-name')||'', carrierBoxX+3, y+13);
-  fs(7.5); fw('normal'); rgb(140,140,135);
-  tx('Pickup date: ________________', carrierBoxX+3, y+19);
-
-  doc.setLineWidth(0.25); strok(0,0,0); rgb(20,20,18);
-  y += proBoxH + 3;
-
   // ── FREIGHT TABLE ────────────────────────────────────────────────
   sectionLabel('FREIGHT DETAILS', ML, y, CW, 5.5);
   y += 5.5;
 
+  // Column widths — description gets remaining space
   const fCols = [13, 20, 0, 22, 24, 14, 24];
   fCols[2] = CW - fCols.reduce((a,b)=>a+b,0);
   const fX = [ML];
   fCols.forEach((w,i) => fX.push(fX[i]+w));
   const fHeaders = ['UNITS', 'PKG TYPE', 'COMMODITY DESCRIPTION', 'WT (LBS)', 'DIMENSIONS', 'CLASS', 'NMFC'];
 
+  // Table header row
   fill(235,235,232); strok(210,210,205); doc.setLineWidth(0.15);
   box(ML, y, CW, 6, 'FD');
   fs(6.5); fw('bold'); rgb(100,100,95);
@@ -765,6 +783,7 @@ function generateBOL() {
   doc.setLineWidth(0.25); strok(0,0,0);
   y += 6;
 
+  // Table rows
   const freightRows = document.querySelectorAll('#freight-tbody tr');
   const rowH = 8;
   rgb(20,20,18); fw('normal'); fs(8.5);
@@ -803,6 +822,10 @@ function generateBOL() {
     y += rowH;
   }
 
+  // Draw outer border around the whole table
+  strok(180,180,175); doc.setLineWidth(0.3);
+  doc.setLineWidth(0.25); strok(0,0,0);
+
   // ── TOTALS BAR ───────────────────────────────────────────────────
   y += 1;
   fill(240,240,238); strok(210,210,205); doc.setLineWidth(0.2);
@@ -837,6 +860,8 @@ function generateBOL() {
     doc.setLineWidth(0.25); strok(0,0,0);
     let ay = y + 6;
     if (accItems.length) {
+      fs(8.5); fw('bold'); rgb(20,20,18);
+      // Draw checkbox-style bullets
       accItems.forEach((item, idx) => {
         const ix = ML + 3 + idx * (CW / accItems.length);
         fill(22,22,20); box(ix, ay-3.5, 3, 3, 'F');
@@ -870,16 +895,21 @@ function generateBOL() {
   strok(210,210,205); doc.setLineWidth(0.2);
   sigParties.forEach((p, i) => {
     const sx = ML + i * sigW;
+    // Box
     box(sx, y, sigW, sigH, 'S');
+    // Party label
     fs(8.5); fw('bold'); rgb(20,20,18);
     tx(p.label, sx+3, y+6);
+    // Sub note
     fs(6.5); fw('normal'); rgb(140,140,135);
     const subLines = doc.splitTextToSize(p.sub, sigW-6);
     subLines.forEach((l,li) => tx(l, sx+3, y+10.5+(li*3.5)));
+    // Signature line
     const sigLineY = y + sigH - 13;
     rgb(200,200,195); doc.line(sx+3, sigLineY, sx+sigW-3, sigLineY);
     rgb(130,130,125); fs(7);
     tx('Signature & printed name', sx+3, sigLineY+3.5);
+    // Date line
     const dateLineY = y + sigH - 5;
     rgb(200,200,195); doc.line(sx+3, dateLineY, sx+sigW/2, dateLineY);
     rgb(130,130,125); fs(7);
@@ -899,11 +929,13 @@ function generateBOL() {
   const noticeLines = doc.splitTextToSize(notice, CW);
   noticeLines.forEach(l => { tx(l, ML, y); y += 3.2; });
 
+  // ── SAVE ─────────────────────────────────────────────────────────
   const filename = (bolNum !== '—' ? bolNum : 'BOL') + '_' + (v('ship-date') || 'undated') + '.pdf';
   doc.save(filename);
   showStatus();
 }
 
+// Init
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('ship-date').value = new Date().toISOString().slice(0,10);
   addRow();
