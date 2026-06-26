@@ -7,363 +7,77 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #f5f5f3;
-    --surface: #ffffff;
-    --surface-alt: #f9f9f8;
-    --border: #e2e2de;
-    --border-strong: #c8c8c3;
-    --text: #1a1a18;
-    --text-secondary: #6b6b67;
-    --text-muted: #9e9e9a;
-    --accent: #1a56db;
-    --accent-bg: #eff4ff;
-    --accent-border: #a4bcfd;
-    --success: #057a55;
+    --bg: #f5f5f3; --surface: #ffffff; --surface-alt: #f9f9f8;
+    --border: #e2e2de; --border-strong: #c8c8c3; --text: #1a1a18;
+    --text-secondary: #6b6b67; --text-muted: #9e9e9a; --accent: #1a56db;
+    --accent-bg: #eff4ff; --accent-border: #a4bcfd; --success: #057a55;
     --radius: 8px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
   }
-
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #111110;
-      --surface: #1c1c1a;
-      --surface-alt: #242422;
-      --border: #2e2e2b;
-      --border-strong: #3e3e3a;
-      --text: #e8e8e4;
-      --text-secondary: #9e9e9a;
-      --text-muted: #6b6b67;
-      --accent: #6b8ef5;
-      --accent-bg: #1a2240;
-      --accent-border: #3a5099;
+      --bg: #111110; --surface: #1c1c1a; --surface-alt: #242422;
+      --border: #2e2e2b; --border-strong: #3e3e3a; --text: #e8e8e4;
+      --text-secondary: #9e9e9a; --text-muted: #6b6b67; --accent: #6b8ef5;
+      --accent-bg: #1a2240; --accent-border: #3a5099;
     }
   }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.5;
-    min-height: 100vh;
-  }
-
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    font-size: 15px;
-    color: var(--text);
-    text-decoration: none;
-  }
-
-  .logo-icon {
-    width: 28px;
-    height: 28px;
-    background: var(--text);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--text); text-decoration: none; }
+  .logo-icon { width: 28px; height: 28px; background: var(--text); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
   .logo-icon svg { width: 16px; height: 16px; }
-
   .header-actions { display: flex; gap: 8px; align-items: center; }
-
-  .main {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 32px 24px 64px;
-  }
-
-  .page-header {
-    margin-bottom: 28px;
-  }
-
-  .page-header h1 {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-    margin-bottom: 4px;
-  }
-
-  .page-header p {
-    color: var(--text-secondary);
-    font-size: 14px;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 12px;
-  }
-
-  .card-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-  }
-
-  .card-title svg {
-    width: 14px;
-    height: 14px;
-    opacity: 0.7;
-  }
-
+  .main { max-width: 860px; margin: 0 auto; padding: 32px 24px 64px; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
+  .page-header p { color: var(--text-secondary); font-size: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 12px; }
+  .card-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; display: flex; align-items: center; gap: 7px; }
+  .card-title svg { width: 14px; height: 14px; opacity: 0.7; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
-
-  .party-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-
+  .party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   .party-grid .card { margin-bottom: 0; }
-
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin-bottom: 12px;
-  }
-
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
   .field:last-child { margin-bottom: 0; }
-
-  label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
+  label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+  input[type=text], input[type=date], input[type=number], select, textarea {
+    width: 100%; padding: 7px 10px; font-size: 13px; font-family: inherit;
+    color: var(--text); background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: var(--radius); transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: none; -webkit-appearance: none; height: 34px;
   }
-
-  input[type=text],
-  input[type=date],
-  input[type=number],
-  select,
-  textarea {
-    width: 100%;
-    padding: 7px 10px;
-    font-size: 13px;
-    font-family: inherit;
-    color: var(--text);
-    background: var(--surface);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    transition: border-color 0.15s, box-shadow 0.15s;
-    appearance: none;
-    -webkit-appearance: none;
-    height: 34px;
-  }
-
-  textarea {
-    height: auto;
-    min-height: 72px;
-    resize: vertical;
-    line-height: 1.5;
-  }
-
-  input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-bg);
-  }
-
-  input[readonly] {
-    background: var(--surface-alt);
-    color: var(--text-secondary);
-    cursor: default;
-  }
-
-  select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b67' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    padding-right: 28px;
-  }
-
-  .freight-wrap {
-    overflow-x: auto;
-    margin: 0 -20px;
-    padding: 0 20px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 680px;
-    font-size: 12px;
-  }
-
-  thead th {
-    text-align: left;
-    padding: 6px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-
-  tbody td {
-    padding: 3px 4px;
-  }
-
-  tbody td input, tbody td select {
-    height: 30px;
-    font-size: 12px;
-    padding: 4px 7px;
-  }
-
+  textarea { height: auto; min-height: 72px; resize: vertical; line-height: 1.5; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+  input[readonly] { background: var(--surface-alt); color: var(--text-secondary); cursor: default; }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b67' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
+  .freight-wrap { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }
+  table { width: 100%; border-collapse: collapse; min-width: 680px; font-size: 12px; }
+  thead th { text-align: left; padding: 6px 8px; font-size: 11px; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 3px 4px; }
+  tbody td input, tbody td select { height: 30px; font-size: 12px; padding: 4px 7px; }
   tbody tr:last-child td { padding-bottom: 8px; }
-
-  .add-line-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 10px;
-    font-size: 13px;
-    color: var(--accent);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px 0;
-    font-family: inherit;
-    font-weight: 500;
-  }
-
+  .add-line-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px 0; font-family: inherit; font-weight: 500; }
   .add-line-btn:hover { opacity: 0.75; }
-
-  .remove-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-muted);
-    padding: 4px 6px;
-    border-radius: 4px;
-    line-height: 1;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-  }
-
+  .remove-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px; border-radius: 4px; line-height: 1; font-size: 16px; display: flex; align-items: center; }
   .remove-btn:hover { color: #e53e3e; background: #fff5f5; }
-
-  .totals-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border);
-  }
-
-  .acc-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 14px;
-  }
-
-  .check-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .check-item input[type=checkbox] {
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-    accent-color: var(--accent);
-    cursor: pointer;
-  }
-
-  .check-item label {
-    font-size: 13px;
-    color: var(--text);
-    font-weight: 400;
-    cursor: pointer;
-  }
-
-  .actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    align-items: center;
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 9px 18px;
-    font-size: 14px;
-    font-weight: 500;
-    font-family: inherit;
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: all 0.15s;
-    border: 1px solid transparent;
-    white-space: nowrap;
-  }
-
-  .btn-primary {
-    background: var(--text);
-    color: var(--bg);
-    border-color: var(--text);
-  }
-
+  .totals-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .acc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+  .check-item { display: flex; align-items: center; gap: 8px; }
+  .check-item input[type=checkbox] { width: 15px; height: 15px; flex-shrink: 0; accent-color: var(--accent); cursor: pointer; }
+  .check-item label { font-size: 13px; color: var(--text); font-weight: 400; cursor: pointer; }
+  .actions { display: flex; gap: 10px; margin-top: 20px; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; font-size: 14px; font-weight: 500; font-family: inherit; border-radius: var(--radius); cursor: pointer; transition: all 0.15s; border: 1px solid transparent; white-space: nowrap; }
+  .btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
   .btn-primary:hover { opacity: 0.85; }
-
   .btn-primary:active { transform: scale(0.98); }
-
-  .btn-secondary {
-    background: var(--surface);
-    color: var(--text-secondary);
-    border-color: var(--border-strong);
-  }
-
+  .btn-secondary { background: var(--surface); color: var(--text-secondary); border-color: var(--border-strong); }
   .btn-secondary:hover { background: var(--surface-alt); }
-
   .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
-
-  .status-msg {
-    font-size: 13px;
-    color: var(--success);
-    display: none;
-    align-items: center;
-    gap: 6px;
-  }
-
+  .status-msg { font-size: 13px; color: var(--success); display: none; align-items: center; gap: 6px; }
   .status-msg.visible { display: flex; }
-
   @media (max-width: 640px) {
     .party-grid { grid-template-columns: 1fr; }
     .grid-3 { grid-template-columns: 1fr 1fr; }
@@ -399,31 +113,20 @@
 </header>
 
 <main class="main">
-
   <div class="page-header">
     <h1>Bill of Lading</h1>
     <p>Fill in the shipment details below, then download a print-ready PDF.</p>
   </div>
 
-  <!-- BOL Details -->
   <div class="card">
     <div class="card-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       BOL details
     </div>
     <div class="grid-4">
-      <div class="field">
-        <label for="bol-number">BOL number</label>
-        <input type="text" id="bol-number" placeholder="BOL-2026-001">
-      </div>
-      <div class="field">
-        <label for="ship-date">Ship date</label>
-        <input type="date" id="ship-date">
-      </div>
-      <div class="field">
-        <label for="carrier-name">Carrier</label>
-        <input type="text" id="carrier-name" placeholder="e.g. XPO Logistics">
-      </div>
+      <div class="field"><label for="bol-number">BOL number</label><input type="text" id="bol-number" placeholder="BOL-2026-001"></div>
+      <div class="field"><label for="ship-date">Ship date</label><input type="date" id="ship-date"></div>
+      <div class="field"><label for="carrier-name">Carrier</label><input type="text" id="carrier-name" placeholder="e.g. XPO Logistics"></div>
       <div class="field">
         <label for="pro-number">PRO number</label>
         <input type="text" id="pro-number" placeholder="Assigned at pickup">
@@ -439,18 +142,11 @@
           <option value="Blind BOL">Blind BOL</option>
         </select>
       </div>
-      <div class="field">
-        <label for="po-number">PO / Reference number</label>
-        <input type="text" id="po-number" placeholder="Optional">
-      </div>
-      <div class="field">
-        <label for="declared-value">Declared value ($)</label>
-        <input type="text" id="declared-value" placeholder="e.g. 25000">
-      </div>
+      <div class="field"><label for="po-number">PO / Reference number</label><input type="text" id="po-number" placeholder="Optional"></div>
+      <div class="field"><label for="declared-value">Declared value ($)</label><input type="text" id="declared-value" placeholder="e.g. 25000"></div>
     </div>
   </div>
 
-  <!-- Shipper + Consignee -->
   <div class="party-grid">
     <div class="card">
       <div class="card-title">
@@ -466,7 +162,6 @@
       </div>
       <div class="field" style="margin-top:4px;"><label for="ship-phone">Contact phone</label><input type="text" id="ship-phone" placeholder="(312) 555-0100"></div>
     </div>
-
     <div class="card">
       <div class="card-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -483,7 +178,6 @@
     </div>
   </div>
 
-  <!-- Freight -->
   <div class="card">
     <div class="card-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
@@ -513,11 +207,10 @@
     <div class="totals-row">
       <div class="field"><label>Total handling units</label><input type="text" id="total-units" readonly placeholder="—"></div>
       <div class="field"><label>Total weight (lbs)</label><input type="text" id="total-weight" readonly placeholder="—"></div>
-      <div class="field"><label></label></div>
+      <div class="field"></div>
     </div>
   </div>
 
-  <!-- Accessorials -->
   <div class="card">
     <div class="card-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -537,7 +230,6 @@
     </div>
   </div>
 
-  <!-- Actions -->
   <div class="actions">
     <button class="btn btn-primary" onclick="generateBOL()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -549,13 +241,11 @@
       PDF downloaded
     </span>
   </div>
-
 </main>
 
 <script>
 const CLASSES = ['50','55','60','65','70','77.5','85','92.5','100','110','125','150','175','200','250','300','400','500'];
 const PKG_TYPES = ['Pallets','Boxes','Drums','Bags','Bundles','Crates','Rolls','Pieces','Skids'];
-
 let rowIdx = 0;
 
 function addRow() {
@@ -578,10 +268,7 @@ function addRow() {
   recalc();
 }
 
-function removeRow(id) {
-  document.getElementById(id)?.remove();
-  recalc();
-}
+function removeRow(id) { document.getElementById(id)?.remove(); recalc(); }
 
 function recalc() {
   let units = 0, weight = 0;
@@ -622,55 +309,45 @@ function generateBOL() {
   }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-
-  const PW = 215.9, PH = 279.4;
-  const ML = 14, MR = 14, MT = 14;
+  const PW = 215.9, PH = 279.4, ML = 14, MR = 14, MT = 14;
   const CW = PW - ML - MR;
   let y = MT;
 
-  // ── Drawing helpers ───────────────────────────────────────────────
-  const fill  = (r,g,b)      => doc.setFillColor(r,g,b);
-  const strok = (r,g,b)      => doc.setDrawColor(r,g,b);
-  const rgb   = (r,g,b)      => doc.setTextColor(r,g,b);
-  const fw    = (w)          => doc.setFont(undefined, w);
-  const fs    = (s)          => doc.setFontSize(s);
-  const tx    = (t,x,yy,o)  => doc.text(String(t||''), x, yy, o||{});
+  const fill  = (r,g,b)     => doc.setFillColor(r,g,b);
+  const strok = (r,g,b)     => doc.setDrawColor(r,g,b);
+  const rgb   = (r,g,b)     => doc.setTextColor(r,g,b);
+  const fw    = (w)         => doc.setFont(undefined, w);
+  const fs    = (s)         => doc.setFontSize(s);
+  const tx    = (t,x,yy,o) => doc.text(String(t||''), x, yy, o||{});
   const box   = (x,yy,w,h,s)=> doc.rect(x,yy,w,h,s||'S');
-  const hline = (x1,y1,x2)  => { strok(210,210,205); doc.line(x1,y1,x2,y1); strok(0,0,0); };
 
-  // Section label helper — grey pill header
   const sectionLabel = (label, x, yy, w, h=5.5) => {
-    fill(240,240,238); strok(220,220,216);
-    doc.setLineWidth(0.15);
+    fill(240,240,238); strok(220,220,216); doc.setLineWidth(0.15);
     box(x, yy, w, h, 'FD');
     fs(6.5); fw('bold'); rgb(110,110,105);
     tx(label, x+3, yy+h-1.5);
-    doc.setLineWidth(0.25);
-    strok(0,0,0);
+    doc.setLineWidth(0.25); strok(0,0,0);
   };
 
-  // Field cell: label + value inside a bordered box
   const fieldCell = (label, value, x, yy, w, h=14) => {
     strok(210,210,205); doc.setLineWidth(0.2);
     box(x, yy, w, h, 'S');
     fs(6.5); fw('bold'); rgb(130,130,125);
     tx(label, x+3, yy+4.5);
     fs(9); fw('normal'); rgb(20,20,18);
-    const wrapped = doc.splitTextToSize(value||'—', w-5);
-    tx(wrapped[0]||'—', x+3, yy+10.5);
+    tx((doc.splitTextToSize(value||'—', w-5))[0]||'—', x+3, yy+10.5);
     doc.setLineWidth(0.25); strok(0,0,0);
   };
 
-  doc.setLineWidth(0.25);
-  strok(0,0,0);
+  doc.setLineWidth(0.25); strok(0,0,0);
 
-  // ── HEADER — three zones: [TITLE | BOL# + DATE | PRO STICKER] ───
+  // ── HEADER: three zones [TITLE | BOL#+DATE | PRO STICKER] ────────
   const HDR_H = 28;
   const titleW = CW * 0.38;
   const metaW  = CW * 0.24;
   const proW   = CW - titleW - metaW;
 
-  const bolNum  = v('bol-number') || '—';
+  const bolNum = v('bol-number') || '—';
   const shipDate = (() => {
     const raw = v('ship-date');
     if (!raw) return '—';
@@ -679,9 +356,8 @@ function generateBOL() {
   })();
   const shipType = v('shipment-type') || 'Straight (non-negotiable)';
 
-  // Zone 1 — dark title block
-  fill(22,22,20);
-  box(ML, y, titleW, HDR_H, 'F');
+  // Zone 1 — dark title
+  fill(22,22,20); box(ML, y, titleW, HDR_H, 'F');
   fs(13); fw('bold'); rgb(255,255,255);
   tx('BILL OF LADING', ML+5, y+11);
   fs(7); fw('normal'); rgb(165,165,160);
@@ -689,7 +365,7 @@ function generateBOL() {
   fs(6.5); rgb(120,120,115);
   tx('CARRIER: ' + (v('carrier-name')||'—'), ML+5, y+23.5);
 
-  // Zone 2 — BOL # and Ship Date stacked
+  // Zone 2 — BOL # and date
   const metaX = ML + titleW;
   fill(252,252,250); strok(210,210,205); doc.setLineWidth(0.2);
   box(metaX, y, metaW, HDR_H, 'FD');
@@ -702,18 +378,16 @@ function generateBOL() {
   fs(9.5); fw('bold'); rgb(22,22,20);
   tx(shipDate, metaX+3, y+24.5);
 
-  // Zone 3 — PRO sticker (dashed border, carrier fills)
+  // Zone 3 — PRO sticker
   const proX = ML + titleW + metaW;
   doc.setLineDashPattern([1.5, 1.2], 0);
   strok(148,148,143); doc.setLineWidth(0.5);
   box(proX, y, proW, HDR_H, 'S');
   doc.setLineDashPattern([], 0);
   doc.setLineWidth(0.15); strok(210,210,205);
-  fill(248,248,245);
-  box(proX, y, proW, 5.5, 'FD');
+  fill(248,248,245); box(proX, y, proW, 5.5, 'FD');
   fs(6.5); fw('bold'); rgb(110,110,105);
   tx('PRO NUMBER — AFFIX STICKER HERE', proX+3, y+4);
-  // Write-in line at bottom
   const proLineY = y + HDR_H - 7;
   doc.setLineWidth(0.2); strok(195,195,190);
   doc.line(proX+4, proLineY, proX+proW-4, proLineY);
@@ -726,12 +400,7 @@ function generateBOL() {
   // ── META ROW ─────────────────────────────────────────────────────
   const mCols = [CW*0.30, CW*0.26, CW*0.22, CW*0.22];
   const mLabels = ['CARRIER NAME', 'PO / REFERENCE #', 'SHIPMENT TYPE', 'DECLARED VALUE'];
-  const mVals = [
-    v('carrier-name'),
-    v('po-number'),
-    shipType,
-    v('declared-value') ? '$' + Number(v('declared-value')).toLocaleString() : ''
-  ];
+  const mVals = [v('carrier-name'), v('po-number'), shipType, v('declared-value') ? '$'+Number(v('declared-value')).toLocaleString() : ''];
   let mx = ML;
   mCols.forEach((w,i) => { fieldCell(mLabels[i], mVals[i], mx, y, w); mx += w; });
   y += 16;
@@ -742,40 +411,32 @@ function generateBOL() {
     { label:'SHIPPER / FROM', name:v('ship-name'), addr:v('ship-addr'), city:v('ship-city'), state:v('ship-state'), zip:v('ship-zip'), phone:v('ship-phone') },
     { label:'CONSIGNEE / TO', name:v('cons-name'), addr:v('cons-addr'), city:v('cons-city'), state:v('cons-state'), zip:v('cons-zip'), phone:v('cons-phone') },
   ];
-
   const partyH = 40;
   parties.forEach((p, i) => {
     const px = ML + i * halfW;
     sectionLabel(p.label, px, y, halfW, 5.5);
     strok(210,210,205); doc.setLineWidth(0.2);
-    box(px, y + 5.5, halfW, partyH - 5.5, 'S');
+    box(px, y+5.5, halfW, partyH-5.5, 'S');
     doc.setLineWidth(0.25); strok(0,0,0);
-
     let ly = y + 11;
-    if (p.name) {
-      fs(10); fw('bold'); rgb(20,20,18);
-      tx(p.name, px+3, ly); fw('normal'); ly += 6;
-    }
+    if (p.name) { fs(10); fw('bold'); rgb(20,20,18); tx(p.name, px+3, ly); fw('normal'); ly += 6; }
     fs(8.5); rgb(40,40,38);
     if (p.addr) { tx(p.addr, px+3, ly); ly += 5; }
-    const cityLine = [p.city, p.state].filter(Boolean).join(', ') + (p.zip ? '  ' + p.zip : '');
+    const cityLine = [p.city, p.state].filter(Boolean).join(', ') + (p.zip ? '  '+p.zip : '');
     if (cityLine.trim()) { tx(cityLine, px+3, ly); ly += 5; }
-    if (p.phone) { rgb(110,110,105); fs(8); tx('Tel: ' + p.phone, px+3, ly); rgb(20,20,18); }
+    if (p.phone) { rgb(110,110,105); fs(8); tx('Tel: '+p.phone, px+3, ly); rgb(20,20,18); }
   });
   y += partyH + 3;
 
   // ── FREIGHT TABLE ────────────────────────────────────────────────
   sectionLabel('FREIGHT DETAILS', ML, y, CW, 5.5);
   y += 5.5;
-
-  // Column widths — description gets remaining space
   const fCols = [13, 20, 0, 22, 24, 14, 24];
   fCols[2] = CW - fCols.reduce((a,b)=>a+b,0);
   const fX = [ML];
   fCols.forEach((w,i) => fX.push(fX[i]+w));
-  const fHeaders = ['UNITS', 'PKG TYPE', 'COMMODITY DESCRIPTION', 'WT (LBS)', 'DIMENSIONS', 'CLASS', 'NMFC'];
+  const fHeaders = ['UNITS','PKG TYPE','COMMODITY DESCRIPTION','WT (LBS)','DIMENSIONS','CLASS','NMFC'];
 
-  // Table header row
   fill(235,235,232); strok(210,210,205); doc.setLineWidth(0.15);
   box(ML, y, CW, 6, 'FD');
   fs(6.5); fw('bold'); rgb(100,100,95);
@@ -783,71 +444,45 @@ function generateBOL() {
   doc.setLineWidth(0.25); strok(0,0,0);
   y += 6;
 
-  // Table rows
   const freightRows = document.querySelectorAll('#freight-tbody tr');
   const rowH = 8;
   rgb(20,20,18); fw('normal'); fs(8.5);
-
   freightRows.forEach((row, ri) => {
     const inp = row.querySelectorAll('input');
     const sel = row.querySelectorAll('select');
-    const cells = [
-      inp[0]?.value || '',
-      sel[0]?.value || '',
-      inp[1]?.value || '',
-      inp[2]?.value ? Number(inp[2].value).toLocaleString() : '',
-      inp[3]?.value || '',
-      sel[1]?.value || '',
-      inp[4]?.value || ''
-    ];
-    if (ri % 2 === 0) { fill(252,252,250); strok(235,235,232); doc.setLineWidth(0.1); box(ML, y, CW, rowH, 'FD'); }
+    const cells = [inp[0]?.value||'', sel[0]?.value||'', inp[1]?.value||'', inp[2]?.value ? Number(inp[2].value).toLocaleString() : '', inp[3]?.value||'', sel[1]?.value||'', inp[4]?.value||''];
+    if (ri%2===0) { fill(252,252,250); strok(235,235,232); doc.setLineWidth(0.1); box(ML,y,CW,rowH,'FD'); }
     doc.setLineWidth(0.15); strok(210,210,205);
     doc.line(ML, y+rowH, ML+CW, y+rowH);
-    fCols.forEach((cw,i) => { if (i>0) doc.line(fX[i], y, fX[i], y+rowH); });
-    doc.setLineWidth(0.25); strok(0,0,0); rgb(20,20,18);
-    fs(8.5);
-    cells.forEach((c,i) => {
-      const clipped = doc.splitTextToSize(c, fCols[i]-4)[0]||'';
-      tx(clipped, fX[i]+2, y+5.5);
-    });
+    fCols.forEach((cw,i) => { if (i>0) doc.line(fX[i],y,fX[i],y+rowH); });
+    doc.setLineWidth(0.25); strok(0,0,0); rgb(20,20,18); fs(8.5);
+    cells.forEach((c,i) => { tx((doc.splitTextToSize(c, fCols[i]-4))[0]||'', fX[i]+2, y+5.5); });
     y += rowH;
   });
 
   if (!freightRows.length) {
-    strok(210,210,205); doc.setLineWidth(0.15);
-    box(ML, y, CW, rowH, 'S');
-    rgb(170,170,165); fs(8);
-    tx('No freight line items entered', ML+3, y+5.5);
-    rgb(20,20,18); doc.setLineWidth(0.25); strok(0,0,0);
-    y += rowH;
+    strok(210,210,205); doc.setLineWidth(0.15); box(ML,y,CW,rowH,'S');
+    rgb(170,170,165); fs(8); tx('No freight line items entered', ML+3, y+5.5);
+    rgb(20,20,18); doc.setLineWidth(0.25); strok(0,0,0); y += rowH;
   }
-
-  // Draw outer border around the whole table
-  strok(180,180,175); doc.setLineWidth(0.3);
-  doc.setLineWidth(0.25); strok(0,0,0);
 
   // ── TOTALS BAR ───────────────────────────────────────────────────
   y += 1;
   fill(240,240,238); strok(210,210,205); doc.setLineWidth(0.2);
   box(ML, y, CW, 8, 'FD');
   fs(7.5); fw('bold'); rgb(80,80,75);
-  const totalU = v('total-units');
-  const totalW = v('total-weight');
-  const dv = v('declared-value');
-  tx('TOTAL UNITS: ' + (totalU||'—'), ML+3, y+5.3);
-  tx('TOTAL WEIGHT: ' + (totalW ? totalW + ' lbs' : '—'), ML+45, y+5.3);
-  if (dv) tx('DECLARED VALUE: $' + Number(dv).toLocaleString(), ML+110, y+5.3);
+  const totalU = v('total-units'), totalW = v('total-weight'), dv = v('declared-value');
+  tx('TOTAL UNITS: '+(totalU||'—'), ML+3, y+5.3);
+  tx('TOTAL WEIGHT: '+(totalW ? totalW+' lbs' : '—'), ML+45, y+5.3);
+  if (dv) tx('DECLARED VALUE: $'+Number(dv).toLocaleString(), ML+110, y+5.3);
   doc.setLineWidth(0.25); strok(0,0,0); rgb(20,20,18);
   y += 11;
 
   // ── ACCESSORIALS ─────────────────────────────────────────────────
   const accItems = [
-    ['acc-liftgate','Liftgate required'],
-    ['acc-appt','Appointment required'],
-    ['acc-hazmat','HAZARDOUS MATERIALS'],
-    ['acc-residential','Residential delivery'],
-    ['acc-inside','Inside delivery'],
-    ['acc-freeze','Protect from freeze'],
+    ['acc-liftgate','Liftgate required'],['acc-appt','Appointment required'],
+    ['acc-hazmat','HAZARDOUS MATERIALS'],['acc-residential','Residential delivery'],
+    ['acc-inside','Inside delivery'],['acc-freeze','Protect from freeze'],
   ].filter(([id]) => chk(id)).map(([,label]) => label);
   const specialInstr = v('special-instructions');
 
@@ -855,65 +490,49 @@ function generateBOL() {
     sectionLabel('ACCESSORIALS & SPECIAL INSTRUCTIONS', ML, y, CW, 5.5);
     y += 5.5;
     strok(210,210,205); doc.setLineWidth(0.2);
-    const accContentH = (accItems.length ? 7 : 0) + (specialInstr ? Math.ceil(doc.splitTextToSize(specialInstr, CW-6).length * 4.5) + 4 : 0);
+    const accContentH = (accItems.length ? 7 : 0) + (specialInstr ? Math.ceil(doc.splitTextToSize(specialInstr, CW-6).length * 4.5)+4 : 0);
     box(ML, y, CW, Math.max(accContentH, 10), 'S');
     doc.setLineWidth(0.25); strok(0,0,0);
     let ay = y + 6;
     if (accItems.length) {
-      fs(8.5); fw('bold'); rgb(20,20,18);
-      // Draw checkbox-style bullets
       accItems.forEach((item, idx) => {
         const ix = ML + 3 + idx * (CW / accItems.length);
         fill(22,22,20); box(ix, ay-3.5, 3, 3, 'F');
         rgb(255,255,255); fs(5.5); tx('✓', ix+0.5, ay-1.2);
-        rgb(20,20,18); fs(8); fw('normal');
-        tx(item, ix+4.5, ay-0.8);
+        rgb(20,20,18); fs(8); fw('normal'); tx(item, ix+4.5, ay-0.8);
       });
       ay += 6;
     }
     if (specialInstr) {
       fs(8.5); fw('normal'); rgb(40,40,38);
-      const lines = doc.splitTextToSize(specialInstr, CW-6);
-      lines.forEach(l => { tx(l, ML+3, ay); ay += 4.5; });
+      doc.splitTextToSize(specialInstr, CW-6).forEach(l => { tx(l, ML+3, ay); ay += 4.5; });
     }
     y += Math.max(accContentH, 10) + 3;
   }
 
-  // ── SIGNATURE BLOCKS ─────────────────────────────────────────────
+  // ── SIGNATURES ───────────────────────────────────────────────────
   const sigH = 36;
   if (y + sigH + 20 > PH - MT) { doc.addPage(); y = MT; }
-
   sectionLabel('SIGNATURES', ML, y, CW, 5.5);
   y += 5.5;
-
   const sigW = CW / 2;
   const sigParties = [
-    { label: 'Shipper', sub: 'Authorized signature confirms freight description is accurate' },
-    { label: 'Carrier', sub: 'Signature confirms receipt of freight in described condition' },
+    { label:'Shipper', sub:'Authorized signature confirms freight description is accurate' },
+    { label:'Carrier', sub:'Signature confirms receipt of freight in described condition' },
   ];
-
   strok(210,210,205); doc.setLineWidth(0.2);
   sigParties.forEach((p, i) => {
     const sx = ML + i * sigW;
-    // Box
     box(sx, y, sigW, sigH, 'S');
-    // Party label
-    fs(8.5); fw('bold'); rgb(20,20,18);
-    tx(p.label, sx+3, y+6);
-    // Sub note
+    fs(8.5); fw('bold'); rgb(20,20,18); tx(p.label, sx+3, y+6);
     fs(6.5); fw('normal'); rgb(140,140,135);
-    const subLines = doc.splitTextToSize(p.sub, sigW-6);
-    subLines.forEach((l,li) => tx(l, sx+3, y+10.5+(li*3.5)));
-    // Signature line
+    doc.splitTextToSize(p.sub, sigW-6).forEach((l,li) => tx(l, sx+3, y+10.5+(li*3.5)));
     const sigLineY = y + sigH - 13;
     rgb(200,200,195); doc.line(sx+3, sigLineY, sx+sigW-3, sigLineY);
-    rgb(130,130,125); fs(7);
-    tx('Signature & printed name', sx+3, sigLineY+3.5);
-    // Date line
+    rgb(130,130,125); fs(7); tx('Signature & printed name', sx+3, sigLineY+3.5);
     const dateLineY = y + sigH - 5;
     rgb(200,200,195); doc.line(sx+3, dateLineY, sx+sigW/2, dateLineY);
-    rgb(130,130,125); fs(7);
-    tx('Date', sx+3, dateLineY+3.5);
+    rgb(130,130,125); fs(7); tx('Date', sx+3, dateLineY+3.5);
     rgb(20,20,18);
   });
   doc.setLineWidth(0.25); strok(0,0,0);
@@ -925,9 +544,8 @@ function generateBOL() {
   doc.line(ML, y, ML+CW, y);
   y += 3;
   fs(6); fw('normal'); rgb(160,160,155);
-  const notice = 'RECEIVED, subject to individually determined rates or contracts that have been agreed upon in writing between the carrier and shipper, if applicable, otherwise to all applicable rates, classifications, and rules that have been established. The carrier shall not make delivery of this shipment without payment of all freight and other lawful charges. This is a Straight Bill of Lading — non-negotiable unless consigned "to order".';
-  const noticeLines = doc.splitTextToSize(notice, CW);
-  noticeLines.forEach(l => { tx(l, ML, y); y += 3.2; });
+  const notice = 'NOTE: Liability Limitation for loss or damage in this shipment may be applicable. See 49 U.S.C. 14706(c)(1)(A) and (B). RECEIVED, subject to individually determined rates or contracts that have been agreed upon in writing between the carrier and shipper, if applicable, otherwise to the rates, classifications and rules that have been established by the carrier and are available to the shipper on request. The property described above, in apparent good order, except as noted (contents and condition of contents of packages unknown), marked, consigned, and destined as shown above, which said carrier agrees to carry to destination, if on its route, or otherwise deliver to another carrier on the route to destination. Every service to be performed hereunder shall be subject to all bill of lading terms and conditions in the governing classification on the date of shipment. Shipper hereby certifies that he is familiar with all the bill of lading terms and conditions in the governing classification and the said terms and conditions are hereby agreed to by the shipper and accepted for himself and his assigns.';
+  doc.splitTextToSize(notice, CW).forEach(l => { tx(l, ML, y); y += 3.2; });
 
   // ── SAVE ─────────────────────────────────────────────────────────
   const filename = (bolNum !== '—' ? bolNum : 'BOL') + '_' + (v('ship-date') || 'undated') + '.pdf';
@@ -935,7 +553,6 @@ function generateBOL() {
   showStatus();
 }
 
-// Init
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('ship-date').value = new Date().toISOString().slice(0,10);
   addRow();
