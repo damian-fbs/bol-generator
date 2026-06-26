@@ -427,6 +427,7 @@
       <div class="field">
         <label for="pro-number">PRO number</label>
         <input type="text" id="pro-number" placeholder="Assigned at pickup">
+        <span style="font-size:11px; color:var(--text-muted);">A sticker box for the carrier appears on the PDF</span>
       </div>
     </div>
     <div class="grid-3" style="margin-top:4px;">
@@ -751,6 +752,48 @@ function generateBOL() {
   });
   y += partyH + 3;
 
+  // ── PRO STICKER BOX ──────────────────────────────────────────────
+  const proBoxH = 22;
+  const proBoxW = CW * 0.42;
+  const proBoxX = ML;
+
+  // Outer dashed border to signal "carrier fills this"
+  doc.setLineDashPattern([1.5, 1.2], 0);
+  strok(160,160,155); doc.setLineWidth(0.4);
+  box(proBoxX, y, proBoxW, proBoxH, 'S');
+  doc.setLineDashPattern([], 0);
+  doc.setLineWidth(0.25); strok(0,0,0);
+
+  // Label banner inside top of box
+  fill(248,248,245); strok(210,210,205); doc.setLineWidth(0.15);
+  box(proBoxX, y, proBoxW, 5.5, 'FD');
+  fs(6.5); fw('bold'); rgb(110,110,105);
+  tx('CARRIER PRO NUMBER — AFFIX STICKER HERE', proBoxX+3, y+4);
+
+  // Large blank zone for sticker + handwrite fallback line
+  const proLineY = y + proBoxH - 5;
+  strok(210,210,205); doc.setLineWidth(0.15);
+  doc.line(proBoxX+4, proLineY, proBoxX+proBoxW-4, proLineY);
+  rgb(185,185,180); fs(7);
+  tx('PRO # (if no sticker)', proBoxX+4, proLineY+3.5);
+
+  // Right side of PRO row — carrier info reminder box
+  const carrierBoxX = proBoxX + proBoxW + 3;
+  const carrierBoxW = CW - proBoxW - 3;
+  strok(210,210,205); doc.setLineWidth(0.2);
+  box(carrierBoxX, y, carrierBoxW, proBoxH, 'S');
+  fill(248,248,245);
+  box(carrierBoxX, y, carrierBoxW, 5.5, 'FD');
+  fs(6.5); fw('bold'); rgb(110,110,105);
+  tx('CARRIER / SCAC', carrierBoxX+3, y+4);
+  fs(9); fw('bold'); rgb(22,22,20);
+  tx(v('carrier-name')||'', carrierBoxX+3, y+13);
+  fs(7.5); fw('normal'); rgb(140,140,135);
+  tx('Pickup date: ________________', carrierBoxX+3, y+19);
+
+  doc.setLineWidth(0.25); strok(0,0,0); rgb(20,20,18);
+  y += proBoxH + 3;
+
   // ── FREIGHT TABLE ────────────────────────────────────────────────
   sectionLabel('FREIGHT DETAILS', ML, y, CW, 5.5);
   y += 5.5;
@@ -873,11 +916,10 @@ function generateBOL() {
   sectionLabel('SIGNATURES', ML, y, CW, 5.5);
   y += 5.5;
 
-  const sigW = CW / 3;
+  const sigW = CW / 2;
   const sigParties = [
     { label: 'Shipper', sub: 'Authorized signature confirms freight description is accurate' },
     { label: 'Carrier', sub: 'Signature confirms receipt of freight in described condition' },
-    { label: 'Consignee', sub: 'Signature confirms delivery received — note exceptions before signing' },
   ];
 
   strok(210,210,205); doc.setLineWidth(0.2);
