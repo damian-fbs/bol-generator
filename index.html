@@ -1251,12 +1251,12 @@ function cciAddRow() {
   const tr = document.createElement('tr');
   tr.id = id;
   tr.innerHTML = `
-    <td><input type="number" min="1" placeholder="1" oninput="cciRecalc()" style="width:38px;"></td>
+    <td><input type="number" min="1" placeholder="1" oninput="cciRecalc()" style="width:62px;"></td>
     <td><input type="text" placeholder="e.g. Automotive brake pads, steel"></td>
-    <td><input type="text" placeholder="8708.30.50" style="width:80px;"></td>
-    <td><input type="text" placeholder="US" style="width:60px;"></td>
-    <td><input type="number" min="0" step="0.01" placeholder="0.00" oninput="cciRecalc()" style="width:66px;text-align:right;"></td>
-    <td><input type="text" readonly style="width:80px;text-align:right;background:var(--surface-alt);color:var(--text-secondary);"></td>
+    <td><input type="text" placeholder="8708.30.50" style="width:90px;"></td>
+    <td><input type="text" placeholder="US" style="width:50px;"></td>
+    <td><input type="number" min="0" step="0.01" placeholder="0.00" oninput="cciRecalc()" style="width:84px;text-align:right;"></td>
+    <td><input type="text" readonly style="width:90px;text-align:right;background:var(--surface-alt);color:var(--text-secondary);"></td>
     <td><button class="remove-btn" onclick="cciRemoveRow('${id}')" title="Remove">x</button></td>
   `;
   tbody.appendChild(tr);
@@ -1316,31 +1316,36 @@ function generateCCI() {
   };
 
   // ── HEADER ────────────────────────────────────────────────────────
-  lw(0.3); F(...PDF.cbsaRed); bx(ML,y,CW,8,'F');
-  fs(7.5); fw('bold'); C(255,255,255);
-  tx('CANADA BORDER SERVICES AGENCY  —  AGENCE DES SERVICES FRONTALIERS DU CANADA', ML+4, y+5.8);
-  y+=8;
-
-  F(...PDF.hdrDark); bx(ML,y,CW*0.60,22,'F');
-  fs(12); fw('bold'); C(255,255,255); tx('CANADIAN CUSTOMS INVOICE', ML+4, y+10);
-  fs(7.5); fw('normal'); C(180,200,240); tx('FACTURE DES DOUANES CANADIENNES', ML+4, y+17.5);
+  // Navy title bar across full width (no red CBSA stripe)
+  lw(0.3); F(...PDF.hdrDark); bx(ML,y,CW,26,'F');
+  fs(13); fw('bold'); C(255,255,255); tx('CANADIAN CUSTOMS INVOICE', ML+4, y+11);
+  fs(7.5); fw('normal'); C(180,200,240); tx('FACTURE DES DOUANES CANADIENNES', ML+4, y+19);
 
   const rX=ML+CW*0.60, rW=CW*0.40;
-  lw(0.4); F(...PDF.hdrMid); S(...PDF.secBorder); bx(rX,y,rW,22,'FD');
-  const c1=rX+3, c2=rX+rW/2+2;
-  fs(7); fw('bold'); C(...PDF.cellLbl);
-  tx('INVOICE NO.', c1, y+6); tx('DATE', c2, y+6);
-  fs(11); fw('bold'); C(...PDF.bodyDark);
-  tx(invNum, c1, y+14.5); tx(invDate, c2, y+14.5);
+  // Overlay light box on right portion of header for invoice # / date
+  lw(0.3); F(50,72,115); bx(rX,y,rW,26,'F');
+  const c1=rX+4, c2=rX+rW/2+2;
+  fs(7); fw('bold'); C(160,185,230);
+  tx('INVOICE NO.', c1, y+7); tx('DATE', c2, y+7);
+  fs(11); fw('bold'); C(255,255,255);
+  tx(invNum, c1, y+16); tx(invDate, c2, y+16);
   lw(0.4); S(...PDF.cellBorder); C(...PDF.bodyDark);
-  y+=22+2;
+  y+=26+2;
 
   // ── BOXES 1–3: Vendor / Consignee / Sold-to ──────────────────────
-  const thirdW=CW/3, partyBoxH=42;
+  // Taller boxes so BN/EIN fit inside
+  const thirdW=CW/3, partyBoxH=52;
   const partyBoxes=[
-    {num:'1.', lbl:'VENDOR (Name and address)',          name:v('cci-ven-name'), addr:v('cci-ven-addr'), city:v('cci-ven-city'), prov:v('cci-ven-state'), postal:v('cci-ven-zip'), country:v('cci-ven-country')},
-    {num:'2.', lbl:'CONSIGNEE / IMPORTER OF RECORD',    name:v('cci-con-name'), addr:v('cci-con-addr'), city:v('cci-con-city'), prov:v('cci-con-prov'),  postal:v('cci-con-postal'), country:v('cci-con-country'), extra:'BN: '+v('cci-importer-bn')},
-    {num:'3.', lbl:'PURCHASER / SOLD TO (if different)', name:v('cci-sold-name'), addr:v('cci-sold-addr')},
+    {num:'1.', lbl:'VENDOR (Name and address)',
+     name:v('cci-ven-name'), addr:v('cci-ven-addr'), city:v('cci-ven-city'),
+     prov:v('cci-ven-state'), postal:v('cci-ven-zip'), country:v('cci-ven-country'),
+     extra: v('cci-exporter-ref') ? 'EIN: '+v('cci-exporter-ref') : null},
+    {num:'2.', lbl:'CONSIGNEE / IMPORTER OF RECORD',
+     name:v('cci-con-name'), addr:v('cci-con-addr'), city:v('cci-con-city'),
+     prov:v('cci-con-prov'), postal:v('cci-con-postal'), country:v('cci-con-country'),
+     extra: v('cci-importer-bn') ? 'BN: '+v('cci-importer-bn') : null},
+    {num:'3.', lbl:'PURCHASER / SOLD TO (if different)',
+     name:v('cci-sold-name'), addr:v('cci-sold-addr')},
   ];
   partyBoxes.forEach((p,i)=>{
     const px=ML+i*thirdW;
@@ -1356,32 +1361,28 @@ function generateCCI() {
       tx([p.city,p.prov].filter(Boolean).join(', ')+(p.postal?' '+p.postal:''),px+3,ly);ly+=5;
     }
     if(p.country){tx(p.country,px+3,ly);ly+=5;}
-    if(p.extra&&v('cci-importer-bn')){C(...PDF.bodyMid);fs(8);tx(p.extra,px+3,ly);}
-    if(!p.name&&!p.addr){C(...PDF.bodyFaint);fs(8);tx('Same as consignee',px+3,y+18);}
+    if(p.extra){C(...PDF.bodyMid);fs(8);fw('bold');tx(p.extra,px+3,ly);}
+    if(!p.name&&!p.addr){C(...PDF.bodyFaint);fs(8);tx('Same as consignee',px+3,y+22);}
     C(...PDF.bodyDark);
   });
   y+=partyBoxH+1;
 
   // ── BOXES 4–13: Reference fields ─────────────────────────────────
   const q=CW/4, half=CW/2;
-  cell('4. IMPORTER BUSINESS NUMBER (BN)',      v('cci-importer-bn'),    ML,      y, q);
-  cell('5. EXPORTER / SUPPLIER US TAX ID (EIN)',v('cci-exporter-ref'),   ML+q,    y, q);
-  cell('6. MODE OF TRANSPORT',                  v('cci-transport'),       ML+q*2,  y, q);
-  cell('7. CONDITIONS OF SALE (Incoterms)',      v('cci-conditions'),      ML+q*3,  y, q);
+  cell('4. MODE OF TRANSPORT',                  v('cci-transport'),       ML,      y, q);
+  cell('5. CONDITIONS OF SALE (Incoterms)',      v('cci-conditions'),      ML+q,    y, q);
+  cell('6. PORT / PLACE OF DIRECT SHIPMENT TO CANADA', v('cci-port'),    ML+q*2,  y, q*2);
   y+=16;
-  cell('8. PORT / PLACE OF DIRECT SHIPMENT TO CANADA', v('cci-port'),          ML,     y, half);
-  cell('9. CURRENCY OF SETTLEMENT',                     cur,                     ML+half,y, half);
+  cell('7. CURRENCY OF SETTLEMENT',              cur,                      ML,      y, half);
+  cell('8. COUNTRY OF ORIGIN OF GOODS',          v('cci-origin-country'), ML+half, y, half);
   y+=16;
-  cell('10. COUNTRY OF ORIGIN OF GOODS',        v('cci-origin-country'), ML,     y, half);
-  cell('11. TRADE AGREEMENT (if applicable)',    v('cci-nafta')||'None',  ML+half,y, half);
-  y+=16;
-  cell('12. PURCHASE ORDER / REFERENCE',         v('cci-po'),             ML,     y, half);
-  cell('13. INVOICE DATE',                        invDate,                  ML+half,y, half);
+  cell('9. TRADE AGREEMENT (if applicable)',      v('cci-nafta')||'None',  ML,      y, half);
+  cell('10. PURCHASE ORDER / REFERENCE',          v('cci-po'),             ML+half, y, half);
   y+=18;
 
   // ── BOX 14: LINE ITEMS TABLE ──────────────────────────────────────
   lw(0.3); F(...PDF.secBg); S(...PDF.secBorder); bx(ML,y,CW,6.5,'FD');
-  fs(7); fw('bold'); C(...PDF.secText); tx('14. GOODS / MERCHANDISE', ML+3, y+5);
+  fs(7); fw('bold'); C(...PDF.secText); tx('11. GOODS / MERCHANDISE', ML+3, y+5);
   y+=6.5;
 
   const iC=[10,0,26,20,25,26];
@@ -1429,10 +1430,10 @@ function generateCCI() {
   const grandTotal=subTotal+freightAmt+otherAmt;
   const tbW=CW*0.48, tbX=ML+CW-tbW;
   const tRows=[
-    ['15a. Total value of goods', fmt(subTotal)],
-    ...(freightAmt?[['15b. Freight charges', fmt(freightAmt)]]:[]),
-    ...(otherAmt?  [['15c. Other charges',   fmt(otherAmt)]]:[]),
-    ['15d. TOTAL DUTIABLE VALUE', fmt(grandTotal)],
+    ['12a. Total value of goods', fmt(subTotal)],
+    ...(freightAmt?[['12b. Freight charges', fmt(freightAmt)]]:[]),
+    ...(otherAmt?  [['12c. Other charges',   fmt(otherAmt)]]:[]),
+    ['12d. TOTAL DUTIABLE VALUE', fmt(grandTotal)],
   ];
   tRows.forEach((row,i)=>{
     const isTotal=i===tRows.length-1;
@@ -1456,7 +1457,7 @@ function generateCCI() {
   const fullRemarks=[cusmaStatement,notes].filter(Boolean).join(' | ');
   if(fullRemarks){
     lw(0.3);F(...PDF.secBg);S(...PDF.secBorder);bx(ML,y,CW,6.5,'FD');
-    fs(7);fw('bold');C(...PDF.secText);tx('16. REMARKS / SPECIAL DECLARATIONS',ML+3,y+5);
+    fs(7);fw('bold');C(...PDF.secText);tx('13. REMARKS / SPECIAL DECLARATIONS',ML+3,y+5);
     y+=6.5;
     const noteLines=doc.splitTextToSize(fullRemarks,CW-8);
     const noteH=noteLines.length*4.8+7;
@@ -1469,7 +1470,7 @@ function generateCCI() {
   // ── BOX 17: CERTIFICATION ─────────────────────────────────────────
   if(y+42>PH-MT){doc.addPage();y=MT;}
   lw(0.3);F(...PDF.secBg);S(...PDF.secBorder);bx(ML,y,CW,6.5,'FD');
-  fs(7);fw('bold');C(...PDF.secText);tx('17. CERTIFICATION',ML+3,y+5);
+  fs(7);fw('bold');C(...PDF.secText);tx('14. CERTIFICATION',ML+3,y+5);
   y+=6.5;
   lw(0.4);S(...PDF.cellBorder);bx(ML,y,CW,38,'S');
   fs(8);fw('normal');C(...PDF.bodySub);
