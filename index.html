@@ -624,7 +624,7 @@
           <option value="CKFTA">CKFTA (Canada-Korea)</option>
         </select>
       </div>
-      <div class="field"><label for="cci-exporter-ref">Exporter / supplier BN or EIN</label><input type="text" id="cci-exporter-ref" placeholder="e.g. 12-3456789 (US EIN)"></div>
+      <div class="field"><label for="cci-exporter-ref">Supplier's US Tax ID (EIN)</label><input type="text" id="cci-exporter-ref" placeholder="e.g. 12-3456789"><span style="font-size:11px;color:var(--text-muted);">Your supplier's federal Employer Identification Number — not yours</span></div>
     </div>
 
     <!-- CUSMA-specific fields, shown only when CUSMA selected -->
@@ -804,6 +804,49 @@ function clearCI() {
 }
 
 // ── PDF helpers shared ────────────────────────────────────────────────
+// Colour palette — all RGB triples
+const PDF = {
+  // Header backgrounds
+  hdrDark:   [30, 50, 90],      // deep navy (replaces near-black)
+  hdrMid:    [245, 247, 252],   // very light blue-grey for right header zone
+  // Section label bars
+  secBg:     [225, 232, 245],   // soft blue-grey fill
+  secBorder: [180, 195, 225],   // medium blue-grey border
+  secText:   [40,  60, 110],    // dark navy label text — legible
+  // Field / cell borders
+  cellBorder:[170, 180, 200],   // medium grey-blue — visible but not heavy
+  cellLbl:   [80,  95, 130],    // dark slate — clearly readable field labels
+  // Body text
+  bodyDark:  [20,  20,  25],    // near-black for primary values
+  bodySub:   [55,  65,  80],    // dark slate for addresses / secondary
+  bodyMid:   [90, 100, 120],    // medium for phone / helper text
+  bodyFaint: [130,140, 160],    // light for placeholder hints
+  // Table
+  rowAlt:    [248, 250, 254],   // very light blue stripe
+  rowBorder: [200, 210, 228],   // table row dividers
+  colDiv:    [210, 218, 232],   // column dividers
+  tblHdrBg:  [210, 218, 235],   // table header row fill
+  tblHdrTxt: [30,  50,  90],    // table header text
+  // Totals bar
+  totBg:     [30,  50,  90],    // navy totals bar
+  totText:   [255,255,255],     // white totals text
+  totSubBg:  [235, 240, 250],   // light totals sub-rows
+  totSubTxt: [40,  55,  90],
+  // Signature / footer
+  sigLine:   [160, 175, 205],   // signature underlines
+  sigLbl:    [90, 105, 135],    // signature labels
+  footerTxt: [120, 132, 155],   // footer legal text
+  footerLine:[190, 200, 220],   // footer rule
+  // PRO sticker
+  proStroke: [100, 130, 190],   // dashed border
+  proBg:     [240, 245, 255],   // sticker bg
+  proLbl:    [40,  60, 110],
+  proLine:   [160, 175, 210],
+  proHint:   [120, 140, 175],
+  // CBSA red stripe
+  cbsaRed:   [180, 20,  20],
+};
+
 function pdfHelpers(doc) {
   return {
     F: (r,g,b) => doc.setFillColor(r,g,b),
@@ -826,115 +869,138 @@ function generateBOL() {
   const PW=215.9,PH=279.4,ML=14,MT=14,CW=PW-ML*2;
   let y=MT;
 
-  const bolNum = v('bol-number')||'N/A';
+  const bolNum   = v('bol-number')||'N/A';
   const shipDate = fmtDate(v('ship-date'));
   const shipType = v('shipment-type')||'Straight (non-negotiable)';
   const carrier  = v('carrier-name')||'';
 
-  // Header
-  const HDR=30,tW=CW*0.40,mW=CW*0.23,pW=CW-tW-mW;
-  lw(0.1); F(22,22,20); bx(ML,y,tW,HDR,'F');
-  fs(13);fw('bold');C(255,255,255); tx('BILL OF LADING',ML+4,y+10);
-  fs(7);fw('normal');C(160,160,155); tx(shipType.toUpperCase(),ML+4,y+17);
-  fs(6.5);C(115,115,110); tx('CARRIER: '+(carrier||'—'),ML+4,y+23.5);
+  // ── HEADER ────────────────────────────────────────────────────────
+  const HDR=30, tW=CW*0.40, mW=CW*0.23, pW=CW-tW-mW;
 
+  // Zone 1 — navy title
+  lw(0.3); F(...PDF.hdrDark); bx(ML,y,tW,HDR,'F');
+  fs(13); fw('bold'); C(255,255,255);
+  tx('BILL OF LADING', ML+4, y+11);
+  fs(7.5); fw('normal'); C(180,200,240);
+  tx(shipType.toUpperCase(), ML+4, y+18.5);
+  fs(7); C(140,165,210);
+  tx('CARRIER: '+(carrier||'—'), ML+4, y+25);
+
+  // Zone 2 — BOL # and date
   const mX=ML+tW;
-  lw(0.2);F(253,253,251);S(205,205,200);bx(mX,y,mW,HDR,'FD');
-  fs(6.5);fw('bold');C(118,118,112); tx('BOL NUMBER',mX+3,y+6);
-  fs(11);fw('bold');C(20,20,18); tx(bolNum,mX+3,y+13.5);
-  fs(6.5);fw('bold');C(118,118,112); tx('SHIP DATE',mX+3,y+19.5);
-  fs(10);fw('bold');C(20,20,18); tx(shipDate,mX+3,y+27);
+  lw(0.4); F(...PDF.hdrMid); S(...PDF.secBorder); bx(mX,y,mW,HDR,'FD');
+  fs(7); fw('bold'); C(...PDF.cellLbl);
+  tx('BOL NUMBER', mX+3, y+6.5);
+  fs(12); fw('bold'); C(...PDF.bodyDark);
+  tx(bolNum, mX+3, y+14);
+  fs(7); fw('bold'); C(...PDF.cellLbl);
+  tx('SHIP DATE', mX+3, y+20.5);
+  fs(10.5); fw('bold'); C(...PDF.bodyDark);
+  tx(shipDate, mX+3, y+27.5);
 
+  // Zone 3 — PRO sticker
   const pX=ML+tW+mW;
-  doc.setLineDashPattern([2,1.2],0);S(145,145,140);lw(0.5);bx(pX,y,pW,HDR,'S');
-  doc.setLineDashPattern([],0);lw(0.15);S(205,205,200);
-  F(249,249,246);bx(pX,y,pW,6,'FD');
-  fs(6.5);fw('bold');C(108,108,102); tx('PRO NUMBER  —  AFFIX STICKER HERE',pX+3,y+4.5);
-  lw(0.2);S(195,195,190); doc.line(pX+4,y+HDR-7,pX+pW-4,y+HDR-7);
-  C(172,172,167);fs(6.5);fw('normal'); tx('Write PRO # if no sticker available',pX+4,y+HDR-3.5);
+  doc.setLineDashPattern([2,1.4],0); S(...PDF.proStroke); lw(0.6);
+  bx(pX,y,pW,HDR,'S');
+  doc.setLineDashPattern([],0); lw(0.3); S(...PDF.secBorder);
+  F(...PDF.proBg); bx(pX,y,pW,6.5,'FD');
+  fs(7); fw('bold'); C(...PDF.proLbl);
+  tx('PRO NUMBER — AFFIX STICKER HERE', pX+3, y+5);
+  lw(0.4); S(...PDF.proLine);
+  doc.line(pX+4, y+HDR-7, pX+pW-4, y+HDR-7);
+  C(...PDF.proHint); fs(6.5); fw('normal');
+  tx('Write PRO # if no sticker', pX+4, y+HDR-3);
 
-  lw(0.25);S(0,0,0);C(20,20,18); y+=HDR+2;
+  lw(0.4); S(...PDF.cellBorder); C(...PDF.bodyDark); y+=HDR+2;
 
-  // Meta row
+  // ── META ROW ──────────────────────────────────────────────────────
   const mc=[CW*0.30,CW*0.26,CW*0.22,CW*0.22];
   const ml=['CARRIER NAME','PO / REFERENCE #','SHIPMENT TYPE','DECLARED VALUE'];
-  const mv=[carrier,v('po-number'),shipType,v('declared-value')?'$'+Number(v('declared-value')).toLocaleString():''];
+  const mv=[carrier, v('po-number'), shipType, v('declared-value')?'$'+Number(v('declared-value')).toLocaleString():''];
   let mx2=ML;
   mc.forEach((w,i)=>{
-    lw(0.2);S(205,205,200);bx(mx2,y,w,14,'S');
-    fs(6.5);fw('bold');C(128,128,122); tx(ml[i],mx2+3,y+4.5);
-    fs(9);fw('normal');C(20,20,18); tx(doc.splitTextToSize(mv[i]||'—',w-5)[0]||'—',mx2+3,y+11);
+    lw(0.4); S(...PDF.cellBorder); bx(mx2,y,w,15,'S');
+    fs(7); fw('bold'); C(...PDF.cellLbl); tx(ml[i], mx2+3, y+5.5);
+    fs(9); fw('normal'); C(...PDF.bodyDark);
+    tx(doc.splitTextToSize(mv[i]||'—',w-5)[0]||'—', mx2+3, y+12);
     mx2+=w;
   });
-  lw(0.25);S(0,0,0); y+=16;
+  y+=17;
 
-  // Shipper/Consignee
-  const hW=CW/2,partyH=44;
+  // ── SHIPPER & CONSIGNEE ───────────────────────────────────────────
+  const hW=CW/2, partyH=46;
   const pData=[
-    {label:'SHIPPER / FROM',name:v('ship-name'),addr:v('ship-addr'),city:v('ship-city'),state:v('ship-state'),zip:v('ship-zip'),phone:v('ship-phone')},
-    {label:'CONSIGNEE / TO',name:v('cons-name'),addr:v('cons-addr'),city:v('cons-city'),state:v('cons-state'),zip:v('cons-zip'),phone:v('cons-phone')},
+    {label:'SHIPPER / FROM', name:v('ship-name'), addr:v('ship-addr'), city:v('ship-city'), state:v('ship-state'), zip:v('ship-zip'), phone:v('ship-phone')},
+    {label:'CONSIGNEE / TO', name:v('cons-name'), addr:v('cons-addr'), city:v('cons-city'), state:v('cons-state'), zip:v('cons-zip'), phone:v('cons-phone')},
   ];
   pData.forEach((p,i)=>{
     const px=ML+i*hW;
-    lw(0.15);F(238,238,235);S(215,215,210);bx(px,y,hW,6,'FD');
-    fs(6.5);fw('bold');C(108,108,102); tx(p.label,px+3,y+4.5);
-    lw(0.2);S(205,205,200);bx(px,y+6,hW,partyH-6,'S');
-    lw(0.25);S(0,0,0);C(20,20,18);
-    let ly=y+13;
+    lw(0.3); F(...PDF.secBg); S(...PDF.secBorder); bx(px,y,hW,6.5,'FD');
+    fs(7); fw('bold'); C(...PDF.secText); tx(p.label, px+3, y+5);
+    lw(0.4); S(...PDF.cellBorder); bx(px,y+6.5,hW,partyH-6.5,'S');
+    C(...PDF.bodyDark);
+    let ly=y+14;
     if(p.name){fs(10);fw('bold');tx(p.name,px+3,ly);fw('normal');ly+=6.5;}
-    fs(8.5);C(38,38,36);
-    if(p.addr){tx(p.addr,px+3,ly);ly+=5;}
+    fs(9); C(...PDF.bodySub);
+    if(p.addr){tx(p.addr,px+3,ly);ly+=5.5;}
     const cl=[p.city,p.state].filter(Boolean).join(', ')+(p.zip?'  '+p.zip:'');
     if(cl.trim()){tx(cl,px+3,ly);ly+=5;}
-    if(p.phone){C(108,108,102);fs(8);tx('Tel: '+p.phone,px+3,ly);}
-    C(20,20,18);
+    if(p.phone){C(...PDF.bodyMid);fs(8.5);tx('Tel: '+p.phone,px+3,ly);}
+    C(...PDF.bodyDark);
   });
   y+=partyH+3;
 
-  // Freight table
-  lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
-  fs(6.5);fw('bold');C(108,108,102);tx('FREIGHT DETAILS',ML+3,y+4.5);
-  lw(0.25);S(0,0,0);C(20,20,18);y+=6;
+  // ── FREIGHT TABLE ─────────────────────────────────────────────────
+  lw(0.3); F(...PDF.secBg); S(...PDF.secBorder); bx(ML,y,CW,6.5,'FD');
+  fs(7); fw('bold'); C(...PDF.secText); tx('FREIGHT DETAILS', ML+3, y+5);
+  y+=6.5;
+
   const fC=[13,20,0,22,24,14,24];
   fC[2]=CW-fC.reduce((a,b)=>a+b,0);
   const fX=[ML]; fC.forEach((w,i)=>fX.push(fX[i]+w));
   const fH=['UNITS','PKG TYPE','COMMODITY DESCRIPTION','WT (LBS)','DIMENSIONS','CLASS','NMFC'];
-  lw(0.1);F(232,232,229);S(205,205,200);bx(ML,y,CW,6.5,'FD');
-  fs(6.5);fw('bold');C(98,98,92);fH.forEach((h,i)=>tx(h,fX[i]+2,y+4.7));
-  lw(0.25);S(0,0,0);C(20,20,18);y+=6.5;
+
+  lw(0.3); F(...PDF.tblHdrBg); S(...PDF.secBorder); bx(ML,y,CW,7,'FD');
+  fs(7); fw('bold'); C(...PDF.tblHdrTxt);
+  fH.forEach((h,i)=>tx(h, fX[i]+2, y+5.2));
+  y+=7;
 
   const fRows=document.querySelectorAll('#bol-freight-tbody tr');
-  const rowH=8; let hasRows=false;
+  const rowH=8.5; let hasRows=false;
   fRows.forEach((row,ri)=>{
     const inp=row.querySelectorAll('input');
     const sel=row.querySelectorAll('select');
-    const units=inp[0]?.value||'',desc=inp[1]?.value||'',wt=inp[2]?.value||'';
+    const units=inp[0]?.value||'', desc=inp[1]?.value||'', wt=inp[2]?.value||'';
     if(!units&&!desc&&!wt) return;
     hasRows=true;
     const cells=[units,sel[0]?.value||'',desc,wt?Number(wt).toLocaleString():'',inp[3]?.value||'',sel[1]?.value||'',inp[4]?.value||''];
-    if(ri%2===0){lw(0.1);F(252,252,250);S(232,232,229);bx(ML,y,CW,rowH,'FD');}
-    lw(0.15);S(205,205,200);doc.line(ML,y+rowH,ML+CW,y+rowH);
+    if(ri%2===0){lw(0.1);F(...PDF.rowAlt);bx(ML,y,CW,rowH,'F');}
+    lw(0.35); S(...PDF.rowBorder); doc.line(ML,y+rowH,ML+CW,y+rowH);
+    lw(0.25); S(...PDF.colDiv);
     fC.forEach((cw,i)=>{if(i>0)doc.line(fX[i],y,fX[i],y+rowH);});
-    lw(0.25);S(0,0,0);C(20,20,18);fs(8.5);fw('normal');
-    cells.forEach((c,i)=>tx(doc.splitTextToSize(c,fC[i]-4)[0]||'',fX[i]+2,y+5.5));
+    C(...PDF.bodyDark); fs(8.5); fw('normal');
+    cells.forEach((c,i)=>tx(doc.splitTextToSize(c,fC[i]-4)[0]||'', fX[i]+2, y+6));
     y+=rowH;
   });
   if(!hasRows){
-    lw(0.15);S(205,205,200);bx(ML,y,CW,rowH,'S');
-    C(168,168,162);fs(8);tx('No freight line items entered',ML+3,y+5.5);
-    lw(0.25);S(0,0,0);C(20,20,18);y+=rowH;
+    lw(0.3);S(...PDF.cellBorder);bx(ML,y,CW,rowH,'S');
+    C(...PDF.bodyFaint);fs(8.5);tx('No freight line items entered',ML+3,y+6);
+    y+=rowH;
   }
+  // outer table border
+  lw(0.5); S(...PDF.cellBorder); bx(ML,y-rowH*(hasRows?fRows.length:1)-7,CW,rowH*(hasRows?fRows.length:1)+7,'S');
 
-  // Totals bar
-  y+=1;lw(0.2);F(238,238,235);S(205,205,200);bx(ML,y,CW,8,'FD');
-  fs(7.5);fw('bold');C(78,78,73);
-  const tU=v('total-units'),tW2=v('total-weight'),dVal=v('declared-value');
-  tx('TOTAL UNITS: '+(tU||'—'),ML+3,y+5.5);
-  tx('TOTAL WEIGHT: '+(tW2?tW2+' lbs':'—'),ML+45,y+5.5);
-  if(dVal)tx('DECLARED VALUE: $'+Number(dVal).toLocaleString(),ML+110,y+5.5);
-  lw(0.25);S(0,0,0);C(20,20,18);y+=11;
+  // ── TOTALS BAR ────────────────────────────────────────────────────
+  y+=1;
+  lw(0.3); F(...PDF.totBg); S(...PDF.hdrDark); bx(ML,y,CW,9,'FD');
+  fs(8); fw('bold'); C(...PDF.totText);
+  const tU=v('total-units'), tW2=v('total-weight'), dVal=v('declared-value');
+  tx('TOTAL UNITS: '+(tU||'—'), ML+4, y+6.2);
+  tx('TOTAL WEIGHT: '+(tW2?tW2+' lbs':'—'), ML+50, y+6.2);
+  if(dVal) tx('DECLARED VALUE: $'+Number(dVal).toLocaleString(), ML+115, y+6.2);
+  C(...PDF.bodyDark); y+=12;
 
-  // Accessorials
+  // ── ACCESSORIALS ──────────────────────────────────────────────────
   const accItems=[
     ['acc-liftgate','Liftgate required'],['acc-appt','Appointment required'],
     ['acc-hazmat','HAZARDOUS MATERIALS'],['acc-residential','Residential delivery'],
@@ -942,58 +1008,59 @@ function generateBOL() {
   ].filter(([id])=>chk(id)).map(([,label])=>label);
   const specInstr=v('special-instructions');
   if(accItems.length||specInstr){
-    lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
-    fs(6.5);fw('bold');C(108,108,102);tx('ACCESSORIALS & SPECIAL INSTRUCTIONS',ML+3,y+4.5);
-    lw(0.25);S(0,0,0);C(20,20,18);y+=6;
-    const aH=(accItems.length?8:0)+(specInstr?doc.splitTextToSize(specInstr,CW-6).length*4.5+4:0);
-    lw(0.2);S(205,205,200);bx(ML,y,CW,Math.max(aH,10),'S');lw(0.25);S(0,0,0);
-    let ay=y+7;
+    lw(0.3);F(...PDF.secBg);S(...PDF.secBorder);bx(ML,y,CW,6.5,'FD');
+    fs(7);fw('bold');C(...PDF.secText);tx('ACCESSORIALS & SPECIAL INSTRUCTIONS',ML+3,y+5);
+    y+=6.5;
+    const aH=(accItems.length?9:0)+(specInstr?doc.splitTextToSize(specInstr,CW-8).length*5+5:0);
+    lw(0.4);S(...PDF.cellBorder);bx(ML,y,CW,Math.max(aH,12),'S');
+    let ay=y+8;
     if(accItems.length){
       accItems.forEach((item,idx)=>{
-        const ix=ML+3+idx*(CW/accItems.length);
-        F(22,22,20);bx(ix,ay-3.5,3,3,'F');
-        C(255,255,255);fs(5.5);tx('v',ix+0.8,ay-1);
-        C(20,20,18);fs(8);fw('normal');tx(item,ix+4.5,ay-0.5);
+        const ix=ML+4+idx*(CW/accItems.length);
+        F(...PDF.hdrDark); bx(ix,ay-4,3.5,3.5,'F');
+        C(255,255,255);fs(5.5);tx('v',ix+0.8,ay-0.8);
+        C(...PDF.bodyDark);fs(8.5);fw('normal');tx(item,ix+5.5,ay-0.5);
       });
-      ay+=7;
+      ay+=8;
     }
     if(specInstr){
-      fs(8.5);fw('normal');C(38,38,36);
-      doc.splitTextToSize(specInstr,CW-6).forEach(l=>{tx(l,ML+3,ay);ay+=4.5;});
+      fs(9);fw('normal');C(...PDF.bodySub);
+      doc.splitTextToSize(specInstr,CW-8).forEach(l=>{tx(l,ML+4,ay);ay+=5;});
     }
-    y+=Math.max(aH,10)+3;
+    y+=Math.max(aH,12)+3;
   }
 
-  // Signatures
-  const sigH=38;
+  // ── SIGNATURES ────────────────────────────────────────────────────
+  const sigH=40;
   if(y+sigH+22>PH-MT){doc.addPage();y=MT;}
-  lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
-  fs(6.5);fw('bold');C(108,108,102);tx('SIGNATURES',ML+3,y+4.5);
-  lw(0.25);S(0,0,0);C(20,20,18);y+=6;
+  lw(0.3);F(...PDF.secBg);S(...PDF.secBorder);bx(ML,y,CW,6.5,'FD');
+  fs(7);fw('bold');C(...PDF.secText);tx('SIGNATURES',ML+3,y+5);
+  y+=6.5;
   const sW=CW/2;
   const sigs=[
-    {label:'Shipper',note:'Authorized signature confirms freight description is accurate'},
-    {label:'Carrier',note:'Signature confirms receipt of freight in described condition'},
+    {label:'Shipper', note:'Authorized signature confirms freight description is accurate'},
+    {label:'Carrier', note:'Signature confirms receipt of freight in described condition'},
   ];
-  lw(0.2);S(205,205,200);
+  lw(0.4);S(...PDF.cellBorder);
   sigs.forEach((s,i)=>{
-    const sx=ML+i*sW;bx(sx,y,sW,sigH,'S');
-    fs(9);fw('bold');C(20,20,18);tx(s.label,sx+4,y+7);
-    fs(6.5);fw('normal');C(138,138,132);
-    doc.splitTextToSize(s.note,sW-8).forEach((l,li)=>tx(l,sx+4,y+13+(li*3.8)));
-    const sl=y+sigH-14;S(195,195,190);doc.line(sx+4,sl,sx+sW-4,sl);
-    C(128,128,122);fs(7);tx('Signature & printed name',sx+4,sl+4);
-    const dl=y+sigH-5;doc.line(sx+4,dl,sx+sW/2,dl);
-    tx('Date',sx+4,dl+4);C(20,20,18);
+    const sx=ML+i*sW; bx(sx,y,sW,sigH,'S');
+    fs(10);fw('bold');C(...PDF.bodyDark);tx(s.label,sx+4,y+8);
+    fs(7.5);fw('normal');C(...PDF.bodyMid);
+    doc.splitTextToSize(s.note,sW-8).forEach((l,li)=>tx(l,sx+4,y+15+(li*4.5)));
+    const sl=y+sigH-14; lw(0.5);S(...PDF.sigLine);doc.line(sx+4,sl,sx+sW-4,sl);
+    C(...PDF.sigLbl);fs(7.5);tx('Signature & printed name',sx+4,sl+4.5);
+    const dl=y+sigH-5; lw(0.4);S(...PDF.sigLine);doc.line(sx+4,dl,sx+sW/2,dl);
+    tx('Date',sx+4,dl+4.5);
+    C(...PDF.bodyDark);
   });
-  lw(0.25);S(0,0,0);y+=sigH+5;
+  y+=sigH+5;
 
-  // Footer
+  // ── LEGAL FOOTER ──────────────────────────────────────────────────
   if(y+16>PH-MT){doc.addPage();y=MT;}
-  lw(0.15);S(205,205,200);doc.line(ML,y,ML+CW,y);y+=3;
-  fs(5.8);fw('normal');C(155,155,150);
+  lw(0.5);S(...PDF.footerLine);doc.line(ML,y,ML+CW,y);y+=4;
+  fs(6);fw('normal');C(...PDF.footerTxt);
   const notice='NOTE: Liability Limitation for loss or damage in this shipment may be applicable. See 49 U.S.C. 14706(c)(1)(A) and (B). RECEIVED, subject to individually determined rates or contracts that have been agreed upon in writing between the carrier and shipper, if applicable, otherwise to the rates, classifications and rules that have been established by the carrier and are available to the shipper on request. The property described above, in apparent good order, except as noted (contents and condition of contents of packages unknown), marked, consigned, and destined as shown above, which said carrier agrees to carry to destination, if on its route, or otherwise deliver to another carrier on the route to destination. Every service to be performed hereunder shall be subject to all bill of lading terms and conditions in the governing classification on the date of shipment. Shipper hereby certifies that he is familiar with all the bill of lading terms and conditions in the governing classification and the said terms and conditions are hereby agreed to by the shipper and accepted for himself and his assigns.';
-  doc.splitTextToSize(notice,CW).forEach(l=>{tx(l,ML,y);y+=3.2;});
+  doc.splitTextToSize(notice,CW).forEach(l=>{tx(l,ML,y);y+=3.5;});
 
   doc.save((bolNum!=='N/A'?bolNum:'BOL')+'_'+(v('ship-date')||'undated')+'.pdf');
   showStatus('bol-status');
@@ -1011,163 +1078,159 @@ function generateCI() {
   const invNum  = v('ci-number')||'N/A';
   const invDate = fmtDate(v('ci-date'));
   const cur     = v('ci-currency').split(' ')[0]||'USD';
+  const originCo = v('ci-origin-country');
   const fmt     = n => cur+' '+Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  // ── CI Header ──────────────────────────────────────────────────────
-  const HDR=30,tW=CW*0.52,rW=CW-tW;
-  lw(0.1);F(22,22,20);bx(ML,y,tW,HDR,'F');
-  fs(15);fw('bold');C(255,255,255);tx('COMMERCIAL INVOICE',ML+5,y+12);
-  fs(7);fw('normal');C(160,160,155);
-  const reason=v('ci-reason');const inco=v('ci-incoterm');
-  tx((reason?'Reason for export: '+reason:'')+(inco?' · Incoterms: '+inco:''),ML+5,y+19);
-  fs(6.5);C(115,115,110);tx('Currency: '+cur,ML+5,y+25.5);
+  // ── HEADER ────────────────────────────────────────────────────────
+  const HDR=30, tW=CW*0.52, rW=CW-tW;
+  lw(0.3); F(...PDF.hdrDark); bx(ML,y,tW,HDR,'F');
+  fs(14); fw('bold'); C(255,255,255); tx('COMMERCIAL INVOICE', ML+5, y+12);
+  fs(7.5); fw('normal'); C(180,200,240);
+  const reason=v('ci-reason'), inco=v('ci-incoterm');
+  tx((reason?'Export reason: '+reason:'')+(inco?' · '+inco:''), ML+5, y+19.5);
+  fs(7); C(140,165,210); tx('Currency: '+cur, ML+5, y+26);
 
   const rX=ML+tW;
-  lw(0.2);F(253,253,251);S(205,205,200);bx(rX,y,rW,HDR,'FD');
-  const c1=rX+3,c2=rX+rW/2+2;
-  fs(6.5);fw('bold');C(118,118,112);
-  tx('INVOICE NUMBER',c1,y+6); tx('INVOICE DATE',c2,y+6);
-  fs(10);fw('bold');C(20,20,18);
-  tx(invNum,c1,y+13.5); tx(invDate,c2,y+13.5);
-  fs(6.5);fw('normal');C(118,118,112);
-  const bolRef=v('ci-bol-ref'),poRef=v('ci-po'),pmtTerms=v('ci-payment');
-  if(bolRef)tx('BOL Ref: '+bolRef,c1,y+20);
-  if(poRef)tx('PO: '+poRef,(bolRef?c2:c1),y+20);
-  if(pmtTerms)tx('Payment: '+pmtTerms,c1,y+26);
+  lw(0.4); F(...PDF.hdrMid); S(...PDF.secBorder); bx(rX,y,rW,HDR,'FD');
+  const c1=rX+3, c2=rX+rW/2+2;
+  fs(7); fw('bold'); C(...PDF.cellLbl);
+  tx('INVOICE NUMBER', c1, y+6.5); tx('INVOICE DATE', c2, y+6.5);
+  fs(10.5); fw('bold'); C(...PDF.bodyDark);
+  tx(invNum, c1, y+14); tx(invDate, c2, y+14);
+  fs(7); fw('normal'); C(...PDF.cellLbl);
+  const bolRef=v('ci-bol-ref'), poRef=v('ci-po'), pmtTerms=v('ci-payment');
+  if(bolRef) tx('BOL Ref: '+bolRef, c1, y+21);
+  if(poRef)  tx('PO: '+poRef, (bolRef?c2:c1), y+21);
+  if(pmtTerms) tx('Payment: '+pmtTerms, c1, y+27);
 
-  lw(0.25);S(0,0,0);C(20,20,18);y+=HDR+2;
+  lw(0.4); S(...PDF.cellBorder); C(...PDF.bodyDark); y+=HDR+2;
 
-  // ── Seller / Buyer ────────────────────────────────────────────────
-  const hW=CW/2,partyH=52;
+  // ── SELLER / BUYER ────────────────────────────────────────────────
+  const hW=CW/2, partyH=52;
   const parties=[
-    {label:'SELLER / EXPORTER',name:v('ci-sel-name'),addr:v('ci-sel-addr'),city:v('ci-sel-city'),state:v('ci-sel-state'),zip:v('ci-sel-zip'),country:v('ci-sel-country'),tax:v('ci-sel-tax')},
-    {label:'BUYER / IMPORTER', name:v('ci-buy-name'),addr:v('ci-buy-addr'),city:v('ci-buy-city'),state:v('ci-buy-state'),zip:v('ci-buy-zip'),country:v('ci-buy-country'),tax:v('ci-buy-tax')},
+    {label:'SELLER / EXPORTER', name:v('ci-sel-name'), addr:v('ci-sel-addr'), city:v('ci-sel-city'), state:v('ci-sel-state'), zip:v('ci-sel-zip'), country:v('ci-sel-country'), tax:v('ci-sel-tax')},
+    {label:'BUYER / IMPORTER',  name:v('ci-buy-name'), addr:v('ci-buy-addr'), city:v('ci-buy-city'), state:v('ci-buy-state'), zip:v('ci-buy-zip'), country:v('ci-buy-country'), tax:v('ci-buy-tax')},
   ];
   parties.forEach((p,i)=>{
     const px=ML+i*hW;
-    lw(0.15);F(238,238,235);S(215,215,210);bx(px,y,hW,6,'FD');
-    fs(6.5);fw('bold');C(108,108,102);tx(p.label,px+3,y+4.5);
-    lw(0.2);S(205,205,200);bx(px,y+6,hW,partyH-6,'S');
-    lw(0.25);S(0,0,0);C(20,20,18);
-    let ly=y+13;
+    lw(0.3); F(...PDF.secBg); S(...PDF.secBorder); bx(px,y,hW,6.5,'FD');
+    fs(7); fw('bold'); C(...PDF.secText); tx(p.label, px+3, y+5);
+    lw(0.4); S(...PDF.cellBorder); bx(px,y+6.5,hW,partyH-6.5,'S');
+    C(...PDF.bodyDark);
+    let ly=y+14;
     if(p.name){fs(10);fw('bold');tx(p.name,px+3,ly);fw('normal');ly+=6.5;}
-    fs(8.5);C(38,38,36);
+    fs(9); C(...PDF.bodySub);
     if(p.addr){tx(p.addr,px+3,ly);ly+=5;}
     const cl=[p.city,p.state].filter(Boolean).join(', ')+(p.zip?'  '+p.zip:'');
     if(cl.trim()){tx(cl,px+3,ly);ly+=5;}
     if(p.country){tx(p.country,px+3,ly);ly+=5;}
-    if(p.tax){C(108,108,102);fs(8);tx('Tax ID: '+p.tax,px+3,ly);}
-    C(20,20,18);
+    if(p.tax){C(...PDF.bodyMid);fs(8.5);tx('Tax ID: '+p.tax,px+3,ly);}
+    C(...PDF.bodyDark);
   });
   y+=partyH+3;
 
-  // ── Line items table ──────────────────────────────────────────────
-  lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
-  fs(6.5);fw('bold');C(108,108,102);tx('LINE ITEMS',ML+3,y+4.5);
-  lw(0.25);S(0,0,0);C(20,20,18);y+=6;
+  // ── LINE ITEMS TABLE ──────────────────────────────────────────────
+  lw(0.3); F(...PDF.secBg); S(...PDF.secBorder); bx(ML,y,CW,6.5,'FD');
+  fs(7); fw('bold'); C(...PDF.secText); tx('LINE ITEMS', ML+3, y+5);
+  y+=6.5;
 
-  const iC=[12,0,28,24,26,26]; // qty, desc, hs, origin, unit, total
+  const iC=[12,0,28,24,26,26];
   iC[1]=CW-iC.reduce((a,b)=>a+b,0);
   const iX=[ML]; iC.forEach((w,i)=>iX.push(iX[i]+w));
   const iH=['QTY','DESCRIPTION OF GOODS','HS/HTS CODE','ORIGIN','UNIT PRICE','TOTAL'];
-  lw(0.1);F(232,232,229);S(205,205,200);bx(ML,y,CW,6.5,'FD');
-  fs(6.5);fw('bold');C(98,98,92);iH.forEach((h,i)=>tx(h,iX[i]+2,y+4.7));
-  lw(0.25);S(0,0,0);C(20,20,18);y+=6.5;
+  lw(0.3); F(...PDF.tblHdrBg); S(...PDF.secBorder); bx(ML,y,CW,7,'FD');
+  fs(7); fw('bold'); C(...PDF.tblHdrTxt); iH.forEach((h,i)=>tx(h,iX[i]+2,y+5.2));
+  y+=7;
 
   const ciRows=document.querySelectorAll('#ci-tbody tr');
-  const rowH=8; let subTotal=0; let hasCI=false;
+  const rowH=8.5; let subTotal=0; let hasCI=false;
   ciRows.forEach((row,ri)=>{
     const inp=row.querySelectorAll('input[type=number]');
     const qty=parseFloat(inp[0]?.value)||0;
     const unit=parseFloat(inp[1]?.value)||0;
-    const descInp=row.querySelector('input[type=text]');
     const allInputs=row.querySelectorAll('input');
-    const desc=allInputs[1]?.value||'';
-    const hs=allInputs[2]?.value||'';
-    const origin=allInputs[3]?.value||'';
+    const desc=allInputs[1]?.value||'', hs=allInputs[2]?.value||'', origin=allInputs[3]?.value||'';
     if(!qty&&!desc) return;
     hasCI=true;
     const lineTotal=qty*unit; subTotal+=lineTotal;
-    const cells=[qty?String(qty):'',desc,hs,origin,unit?fmt(unit).replace(cur+' ',''):'',lineTotal?fmt(lineTotal).replace(cur+' ',''):''];
-    if(ri%2===0){lw(0.1);F(252,252,250);S(232,232,229);bx(ML,y,CW,rowH,'FD');}
-    lw(0.15);S(205,205,200);doc.line(ML,y+rowH,ML+CW,y+rowH);
-    iC.forEach((cw,i)=>{if(i>0)doc.line(iX[i],y,iX[i],y+rowH);});
-    lw(0.25);S(0,0,0);C(20,20,18);fs(8.5);fw('normal');
+    const cells=[qty?String(qty):'', desc, hs, origin,
+      unit?fmt(unit).replace(cur+' ',''):'',
+      lineTotal?fmt(lineTotal).replace(cur+' ',''):''
+    ];
+    if(ri%2===0){lw(0.1);F(...PDF.rowAlt);bx(ML,y,CW,rowH,'F');}
+    lw(0.35); S(...PDF.rowBorder); doc.line(ML,y+rowH,ML+CW,y+rowH);
+    lw(0.25); S(...PDF.colDiv); iC.forEach((cw,i)=>{if(i>0)doc.line(iX[i],y,iX[i],y+rowH);});
+    C(...PDF.bodyDark); fs(8.5); fw('normal');
     cells.forEach((c,i)=>{
-      const align=i>=4?{align:'right',maxWidth:iC[i]-4}:{};
       const clipped=doc.splitTextToSize(c,iC[i]-4)[0]||'';
-      if(i>=4) tx(clipped,iX[i]+iC[i]-2,y+5.5,{align:'right'});
-      else tx(clipped,iX[i]+2,y+5.5);
+      if(i>=4) tx(clipped, iX[i]+iC[i]-2, y+6, {align:'right'});
+      else tx(clipped, iX[i]+2, y+6);
     });
     y+=rowH;
   });
   if(!hasCI){
-    lw(0.15);S(205,205,200);bx(ML,y,CW,rowH,'S');
-    C(168,168,162);fs(8);tx('No line items entered',ML+3,y+5.5);
-    lw(0.25);S(0,0,0);C(20,20,18);y+=rowH;
+    lw(0.3);S(...PDF.cellBorder);bx(ML,y,CW,rowH,'S');
+    C(...PDF.bodyFaint);fs(8.5);tx('No line items entered',ML+3,y+6);
+    y+=rowH;
   }
 
-  // Totals block
+  // ── TOTALS ────────────────────────────────────────────────────────
   y+=2;
   const freight=parseFloat(document.getElementById('ci-freight')?.value)||0;
   const grandTotal=subTotal+freight;
   const tRows=[
-    ['Subtotal',fmt(subTotal)],
-    ...(freight?[['Freight / Insurance',fmt(freight)]]:[] ),
-    ['TOTAL INVOICE VALUE',fmt(grandTotal)],
+    ['Subtotal', fmt(subTotal)],
+    ...(freight?[['Freight / Insurance', fmt(freight)]]:[]),
+    ['TOTAL INVOICE VALUE', fmt(grandTotal)],
   ];
-  const tbW=CW*0.45,tbX=ML+CW-tbW;
+  const tbW=CW*0.45, tbX=ML+CW-tbW;
   tRows.forEach((row,i)=>{
     const isTotal=i===tRows.length-1;
-    if(isTotal){lw(0.2);F(22,22,20);bx(tbX,y,tbW,9,'F');}
-    else{lw(0.15);S(205,205,200);doc.line(tbX,y,tbX+tbW,y);}
-    fs(isTotal?8.5:8);fw(isTotal?'bold':'normal');
-    C(isTotal?255:80,isTotal?255:80,isTotal?255:75);
-    tx(row[0],tbX+3,y+(isTotal?6.5:5.5));
-    tx(row[1],tbX+tbW-3,y+(isTotal?6.5:5.5),{align:'right'});
-    C(20,20,18);
-    y+=isTotal?11:7;
+    if(isTotal){lw(0.3);F(...PDF.totBg);bx(tbX,y,tbW,10,'F');}
+    else{lw(0.35);S(...PDF.rowBorder);doc.line(tbX,y,tbX+tbW,y);}
+    fs(isTotal?9:8.5); fw(isTotal?'bold':'normal');
+    C(...(isTotal?PDF.totText:PDF.totSubTxt));
+    tx(row[0], tbX+4, y+(isTotal?7:6));
+    tx(row[1], tbX+tbW-4, y+(isTotal?7:6), {align:'right'});
+    C(...PDF.bodyDark); y+=isTotal?12:8;
   });
   y+=4;
 
-  // Additional details
-  const port=v('ci-port'),originCo=v('ci-origin-country'),notes=v('ci-notes');
+  // ── ADDITIONAL DETAILS ────────────────────────────────────────────
+  const port=v('ci-port'), notes=v('ci-notes');
   if(port||originCo||notes){
-    lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
-    fs(6.5);fw('bold');C(108,108,102);tx('ADDITIONAL DETAILS',ML+3,y+4.5);
-    lw(0.25);S(0,0,0);C(20,20,18);y+=6;
-    lw(0.2);S(205,205,200);
-    const detH=((port||originCo)?7:0)+(notes?doc.splitTextToSize(notes,CW-6).length*4.5+4:0);
-    bx(ML,y,CW,Math.max(detH,10),'S');lw(0.25);S(0,0,0);C(20,20,18);
-    let dy=y+6;fs(8.5);fw('normal');C(38,38,36);
-    if(originCo){tx('Country of origin: '+originCo,ML+3,dy);dy+=5;}
-    if(port){tx('Port of entry: '+port,ML+3,dy);dy+=5;}
-    if(notes){
-      doc.splitTextToSize(notes,CW-6).forEach(l=>{tx(l,ML+3,dy);dy+=4.5;});
-    }
-    y+=Math.max(detH,10)+3;
+    lw(0.3);F(...PDF.secBg);S(...PDF.secBorder);bx(ML,y,CW,6.5,'FD');
+    fs(7);fw('bold');C(...PDF.secText);tx('ADDITIONAL DETAILS',ML+3,y+5);
+    y+=6.5;
+    const detH=((port||originCo)?8:0)+(notes?doc.splitTextToSize(notes,CW-8).length*5+5:0);
+    lw(0.4);S(...PDF.cellBorder);bx(ML,y,CW,Math.max(detH,12),'S');
+    let dy=y+7; fs(9); fw('normal'); C(...PDF.bodySub);
+    if(originCo){tx('Country of origin: '+originCo,ML+4,dy);dy+=5.5;}
+    if(port){tx('Port of entry: '+port,ML+4,dy);dy+=5.5;}
+    if(notes){doc.splitTextToSize(notes,CW-8).forEach(l=>{tx(l,ML+4,dy);dy+=5;});}
+    y+=Math.max(detH,12)+3;
   }
 
-  // Certification / signature block
-  if(y+36>PH-MT){doc.addPage();y=MT;}
-  lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
-  fs(6.5);fw('bold');C(108,108,102);tx('CERTIFICATION & AUTHORIZED SIGNATURE',ML+3,y+4.5);
-  lw(0.25);S(0,0,0);C(20,20,18);y+=6;
-  lw(0.2);S(205,205,200);bx(ML,y,CW,34,'S');lw(0.25);S(0,0,0);
-  fs(7);fw('normal');C(88,88,83);
+  // ── CERTIFICATION ─────────────────────────────────────────────────
+  if(y+38>PH-MT){doc.addPage();y=MT;}
+  lw(0.3);F(...PDF.secBg);S(...PDF.secBorder);bx(ML,y,CW,6.5,'FD');
+  fs(7);fw('bold');C(...PDF.secText);tx('CERTIFICATION & AUTHORIZED SIGNATURE',ML+3,y+5);
+  y+=6.5;
+  lw(0.4);S(...PDF.cellBorder);bx(ML,y,CW,36,'S');
+  fs(8);fw('normal');C(...PDF.bodySub);
   const cert='I/We hereby certify that the information on this invoice is true and correct and that the contents of this shipment are as described above.';
-  doc.splitTextToSize(cert,CW-6).forEach((l,i)=>tx(l,ML+3,y+6+(i*4)));
-  const sl=y+21;lw(0.2);S(195,195,190);doc.line(ML+3,sl,ML+CW/2-5,sl);
-  C(128,128,122);fs(7);tx('Authorized signature & title',ML+3,sl+4);
-  doc.line(ML+CW/2+5,sl,ML+CW-3,sl);
-  tx('Date',ML+CW/2+5,sl+4);
-  C(20,20,18);y+=36+3;
+  doc.splitTextToSize(cert,CW-8).forEach((l,i)=>tx(l,ML+4,y+8+(i*5)));
+  const sl=y+23; lw(0.5);S(...PDF.sigLine);doc.line(ML+4,sl,ML+CW/2-6,sl);
+  C(...PDF.sigLbl);fs(7.5);tx('Authorized signature & title',ML+4,sl+5);
+  lw(0.4);S(...PDF.sigLine);doc.line(ML+CW/2+6,sl,ML+CW-4,sl);
+  tx('Date',ML+CW/2+6,sl+5);
+  C(...PDF.bodyDark); y+=38+3;
 
-  // Footer
-  if(y+10>PH-MT){doc.addPage();y=MT;}
-  lw(0.15);S(205,205,200);doc.line(ML,y,ML+CW,y);y+=3;
-  fs(5.8);fw('normal');C(155,155,150);
-  tx('This commercial invoice is for customs purposes. The seller certifies that the goods described herein are of '+( originCo||'stated')+' origin and that the declared values are true and accurate to the best of the seller\'s knowledge.',ML,y);
+  // ── FOOTER ────────────────────────────────────────────────────────
+  if(y+12>PH-MT){doc.addPage();y=MT;}
+  lw(0.5);S(...PDF.footerLine);doc.line(ML,y,ML+CW,y);y+=4;
+  fs(6);fw('normal');C(...PDF.footerTxt);
+  tx('This commercial invoice is for customs purposes. The seller certifies that the goods described herein are of '+(originCo||'stated')+' origin and that the declared values are true and accurate to the best of the seller\'s knowledge.',ML,y);
 
   doc.save((invNum!=='N/A'?invNum:'Invoice')+'_'+(v('ci-date')||'undated')+'.pdf');
   showStatus('ci-status');
@@ -1244,228 +1307,187 @@ function generateCCI() {
   const cur     = v('cci-currency').split(' ')[0]||'CAD';
   const fmt     = n => cur+' '+Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  // helper: draw a labelled field cell
-  const cell = (label, val, x, cy, w, h=13) => {
-    lw(0.15); S(205,205,200); bx(x,cy,w,h,'S');
-    fs(6); fw('bold'); C(118,118,112); tx(label,x+2,cy+4);
-    fs(8.5); fw('normal'); C(20,20,18);
-    tx(doc.splitTextToSize(val||'—',w-4)[0]||'—', x+2, cy+10);
+  // Labelled cell helper
+  const cell = (label, val, x, cy, w, h=14) => {
+    lw(0.4); S(...PDF.cellBorder); bx(x,cy,w,h,'S');
+    fs(6.5); fw('bold'); C(...PDF.cellLbl); tx(label, x+3, cy+5);
+    fs(9); fw('normal'); C(...PDF.bodyDark);
+    tx(doc.splitTextToSize(val||'—',w-5)[0]||'—', x+3, cy+11.5);
   };
 
-  // ── HEADER ──────────────────────────────────────────────────────────
-  // Red top stripe (CBSA red #d42a2a)
-  lw(0.1); F(180,20,20); bx(ML,y,CW,7,'F');
-  fs(7); fw('bold'); C(255,255,255);
-  tx('CANADA BORDER SERVICES AGENCY  —  AGENCE DES SERVICES FRONTALIERS DU CANADA', ML+3, y+5);
+  // ── HEADER ────────────────────────────────────────────────────────
+  lw(0.3); F(...PDF.cbsaRed); bx(ML,y,CW,8,'F');
+  fs(7.5); fw('bold'); C(255,255,255);
+  tx('CANADA BORDER SERVICES AGENCY  —  AGENCE DES SERVICES FRONTALIERS DU CANADA', ML+4, y+5.8);
+  y+=8;
 
-  y += 7;
-  // Dark title bar
-  F(22,22,20); bx(ML,y,CW*0.60,20,'F');
-  fs(12); fw('bold'); C(255,255,255); tx('CANADIAN CUSTOMS INVOICE', ML+4, y+9);
-  fs(7); fw('normal'); C(160,160,155); tx('FACTURE DES DOUANES CANADIENNES', ML+4, y+16);
+  F(...PDF.hdrDark); bx(ML,y,CW*0.60,22,'F');
+  fs(12); fw('bold'); C(255,255,255); tx('CANADIAN CUSTOMS INVOICE', ML+4, y+10);
+  fs(7.5); fw('normal'); C(180,200,240); tx('FACTURE DES DOUANES CANADIENNES', ML+4, y+17.5);
 
-  // Right side: invoice # and date
   const rX=ML+CW*0.60, rW=CW*0.40;
-  lw(0.2); F(253,253,251); S(205,205,200); bx(rX,y,rW,20,'FD');
+  lw(0.4); F(...PDF.hdrMid); S(...PDF.secBorder); bx(rX,y,rW,22,'FD');
   const c1=rX+3, c2=rX+rW/2+2;
-  fs(6.5); fw('bold'); C(118,118,112);
-  tx('INVOICE NO.',c1,y+5.5); tx('DATE',c2,y+5.5);
-  fs(10); fw('bold'); C(20,20,18);
-  tx(invNum,c1,y+13); tx(invDate,c2,y+13);
-  lw(0.25); S(0,0,0); C(20,20,18);
-  y += 20+1;
+  fs(7); fw('bold'); C(...PDF.cellLbl);
+  tx('INVOICE NO.', c1, y+6); tx('DATE', c2, y+6);
+  fs(11); fw('bold'); C(...PDF.bodyDark);
+  tx(invNum, c1, y+14.5); tx(invDate, c2, y+14.5);
+  lw(0.4); S(...PDF.cellBorder); C(...PDF.bodyDark);
+  y+=22+2;
 
-  // ── BOX 1: Vendor / Consignee / Sold-to row ─────────────────────────
-  const thirdW = CW/3;
-  // Vendor
-  lw(0.15); F(238,238,235); S(215,215,210); bx(ML,y,thirdW,5.5,'FD');
-  fs(6); fw('bold'); C(108,108,102); tx('1. VENDOR (Name and address)', ML+2, y+4);
-  lw(0.2); S(205,205,200); bx(ML,y+5.5,thirdW,34,'S');
-  let vy=y+11; lw(0.25); S(0,0,0); C(20,20,18);
-  if(v('cci-ven-name')){fs(9);fw('bold');tx(v('cci-ven-name'),ML+2,vy);fw('normal');vy+=5.5;}
-  fs(8); C(38,38,36);
-  if(v('cci-ven-addr')){tx(v('cci-ven-addr'),ML+2,vy);vy+=4.5;}
-  const vCityLine=[v('cci-ven-city'),v('cci-ven-state')].filter(Boolean).join(', ')+(v('cci-ven-zip')?' '+v('cci-ven-zip'):'');
-  if(vCityLine.trim()){tx(vCityLine,ML+2,vy);vy+=4.5;}
-  if(v('cci-ven-country')){C(108,108,102);fs(7.5);tx(v('cci-ven-country'),ML+2,vy);C(20,20,18);}
+  // ── BOXES 1–3: Vendor / Consignee / Sold-to ──────────────────────
+  const thirdW=CW/3, partyBoxH=42;
+  const partyBoxes=[
+    {num:'1.', lbl:'VENDOR (Name and address)',          name:v('cci-ven-name'), addr:v('cci-ven-addr'), city:v('cci-ven-city'), prov:v('cci-ven-state'), postal:v('cci-ven-zip'), country:v('cci-ven-country')},
+    {num:'2.', lbl:'CONSIGNEE / IMPORTER OF RECORD',    name:v('cci-con-name'), addr:v('cci-con-addr'), city:v('cci-con-city'), prov:v('cci-con-prov'),  postal:v('cci-con-postal'), country:v('cci-con-country'), extra:'BN: '+v('cci-importer-bn')},
+    {num:'3.', lbl:'PURCHASER / SOLD TO (if different)', name:v('cci-sold-name'), addr:v('cci-sold-addr')},
+  ];
+  partyBoxes.forEach((p,i)=>{
+    const px=ML+i*thirdW;
+    lw(0.3); F(...PDF.secBg); S(...PDF.secBorder); bx(px,y,thirdW,6.5,'FD');
+    fs(6.5); fw('bold'); C(...PDF.secText); tx(p.num+' '+p.lbl, px+3, y+5);
+    lw(0.4); S(...PDF.cellBorder); bx(px,y+6.5,thirdW,partyBoxH-6.5,'S');
+    C(...PDF.bodyDark);
+    let ly=y+13;
+    if(p.name){fs(9.5);fw('bold');tx(p.name,px+3,ly);fw('normal');ly+=6;}
+    fs(8.5); C(...PDF.bodySub);
+    if(p.addr){tx(p.addr,px+3,ly);ly+=5;}
+    if(p.city||p.prov||p.postal){
+      tx([p.city,p.prov].filter(Boolean).join(', ')+(p.postal?' '+p.postal:''),px+3,ly);ly+=5;
+    }
+    if(p.country){tx(p.country,px+3,ly);ly+=5;}
+    if(p.extra&&v('cci-importer-bn')){C(...PDF.bodyMid);fs(8);tx(p.extra,px+3,ly);}
+    if(!p.name&&!p.addr){C(...PDF.bodyFaint);fs(8);tx('Same as consignee',px+3,y+18);}
+    C(...PDF.bodyDark);
+  });
+  y+=partyBoxH+1;
 
-  // Consignee
-  const conX=ML+thirdW;
-  lw(0.15); F(238,238,235); S(215,215,210); bx(conX,y,thirdW,5.5,'FD');
-  fs(6); fw('bold'); C(108,108,102); tx('2. CONSIGNEE (Name and address)', conX+2, y+4);
-  lw(0.2); S(205,205,200); bx(conX,y+5.5,thirdW,34,'S');
-  let cy2=y+11; lw(0.25); S(0,0,0); C(20,20,18);
-  if(v('cci-con-name')){fs(9);fw('bold');tx(v('cci-con-name'),conX+2,cy2);fw('normal');cy2+=5.5;}
-  fs(8); C(38,38,36);
-  if(v('cci-con-addr')){tx(v('cci-con-addr'),conX+2,cy2);cy2+=4.5;}
-  const cCityLine=[v('cci-con-city'),v('cci-con-prov')].filter(Boolean).join(', ')+(v('cci-con-postal')?' '+v('cci-con-postal'):'');
-  if(cCityLine.trim()){tx(cCityLine,conX+2,cy2);cy2+=4.5;}
-  if(v('cci-con-country')){C(108,108,102);fs(7.5);tx(v('cci-con-country'),conX+2,cy2);C(20,20,18);}
+  // ── BOXES 4–13: Reference fields ─────────────────────────────────
+  const q=CW/4, half=CW/2;
+  cell('4. IMPORTER BUSINESS NUMBER (BN)',      v('cci-importer-bn'),    ML,      y, q);
+  cell('5. EXPORTER / SUPPLIER US TAX ID (EIN)',v('cci-exporter-ref'),   ML+q,    y, q);
+  cell('6. MODE OF TRANSPORT',                  v('cci-transport'),       ML+q*2,  y, q);
+  cell('7. CONDITIONS OF SALE (Incoterms)',      v('cci-conditions'),      ML+q*3,  y, q);
+  y+=16;
+  cell('8. PORT / PLACE OF DIRECT SHIPMENT TO CANADA', v('cci-port'),          ML,     y, half);
+  cell('9. CURRENCY OF SETTLEMENT',                     cur,                     ML+half,y, half);
+  y+=16;
+  cell('10. COUNTRY OF ORIGIN OF GOODS',        v('cci-origin-country'), ML,     y, half);
+  cell('11. TRADE AGREEMENT (if applicable)',    v('cci-nafta')||'None',  ML+half,y, half);
+  y+=16;
+  cell('12. PURCHASE ORDER / REFERENCE',         v('cci-po'),             ML,     y, half);
+  cell('13. INVOICE DATE',                        invDate,                  ML+half,y, half);
+  y+=18;
 
-  // Sold-to
-  const soldX=ML+thirdW*2;
-  lw(0.15); F(238,238,235); S(215,215,210); bx(soldX,y,thirdW,5.5,'FD');
-  fs(6); fw('bold'); C(108,108,102); tx('3. PURCHASER / SOLD TO (if different)', soldX+2, y+4);
-  lw(0.2); S(205,205,200); bx(soldX,y+5.5,thirdW,34,'S');
-  lw(0.25); S(0,0,0); C(20,20,18); fs(8.5); fw('normal');
-  const soldName=v('cci-sold-name'), soldAddr=v('cci-sold-addr');
-  if(soldName){fs(9);fw('bold');tx(soldName,soldX+2,y+11);fw('normal');}
-  if(soldAddr){fs(8);C(38,38,36);tx(soldAddr,soldX+2,y+(soldName?17:11));C(20,20,18);}
-  if(!soldName&&!soldAddr){fs(7.5);C(158,158,152);tx('Same as consignee',soldX+2,y+14);C(20,20,18);}
+  // ── BOX 14: LINE ITEMS TABLE ──────────────────────────────────────
+  lw(0.3); F(...PDF.secBg); S(...PDF.secBorder); bx(ML,y,CW,6.5,'FD');
+  fs(7); fw('bold'); C(...PDF.secText); tx('14. GOODS / MERCHANDISE', ML+3, y+5);
+  y+=6.5;
 
-  y+=39.5+1;
-
-  // ── BOX 2: Reference / transport row ────────────────────────────────
-  const q=CW/4;
-  cell('4. IMPORTER BUSINESS NUMBER (BN)', v('cci-importer-bn'), ML,       y, q);
-  cell('5. EXPORTER REFERENCE / BN',      v('cci-exporter-ref'),ML+q,     y, q);
-  cell('6. MODE OF TRANSPORT',            v('cci-transport'),   ML+q*2,   y, q);
-  cell('7. CONDITIONS OF SALE (Incoterms)',v('cci-conditions'),  ML+q*3,   y, q);
-  y+=15;
-
-  const half=CW/2;
-  cell('8. PORT / PLACE OF DIRECT SHIPMENT TO CANADA', v('cci-port'),         ML,    y, half);
-  cell('9. CURRENCY OF SETTLEMENT',                    cur,                    ML+half,y, half);
-  y+=15;
-
-  cell('10. COUNTRY OF ORIGIN OF GOODS', v('cci-origin-country'), ML,    y, half);
-  cell('11. TRADE AGREEMENT (if applicable)', v('cci-nafta')||'—', ML+half, y, half);
-  y+=15;
-
-  // PO ref and invoice date recap
-  cell('12. PURCHASE ORDER / REFERENCE', v('cci-po'), ML,    y, half);
-  cell('13. INVOICE DATE',               invDate,      ML+half,y, half);
-  y+=15+2;
-
-  // ── LINE ITEMS TABLE ─────────────────────────────────────────────────
-  lw(0.15); F(238,238,235); S(215,215,210); bx(ML,y,CW,5.5,'FD');
-  fs(6); fw('bold'); C(108,108,102);
-  tx('14. GOODS / MERCHANDISE', ML+2, y+4);
-  lw(0.25); S(0,0,0); C(20,20,18); y+=5.5;
-
-  const iC=[10,0,26,20,24,26];
+  const iC=[10,0,26,20,25,26];
   iC[1]=CW-iC.reduce((a,b)=>a+b,0);
   const iX=[ML]; iC.forEach((w,i)=>iX.push(iX[i]+w));
   const iH=['QTY','FULL DESCRIPTION OF GOODS','HS/TARIFF CODE','ORIGIN','UNIT PRICE','TOTAL VALUE'];
-
-  lw(0.1); F(232,232,229); S(205,205,200); bx(ML,y,CW,6,'FD');
-  fs(6); fw('bold'); C(98,98,92); iH.forEach((h,i)=>tx(h,iX[i]+2,y+4.3));
-  lw(0.25); S(0,0,0); C(20,20,18); y+=6;
+  lw(0.3); F(...PDF.tblHdrBg); S(...PDF.secBorder); bx(ML,y,CW,7,'FD');
+  fs(7); fw('bold'); C(...PDF.tblHdrTxt); iH.forEach((h,i)=>tx(h,iX[i]+2,y+5.2));
+  y+=7;
 
   const cciRows=document.querySelectorAll('#cci-tbody tr');
-  const rowH=8; let subTotal=0; let hasCCI=false;
+  const rowH=8.5; let subTotal=0; let hasCCI=false;
   cciRows.forEach((row,ri)=>{
     const nums=row.querySelectorAll('input[type=number]');
-    const qty=parseFloat(nums[0]?.value)||0;
-    const unit=parseFloat(nums[1]?.value)||0;
+    const qty=parseFloat(nums[0]?.value)||0, unit=parseFloat(nums[1]?.value)||0;
     const allInp=row.querySelectorAll('input');
-    const desc=allInp[1]?.value||'';
-    const hs=allInp[2]?.value||'';
-    const origin=allInp[3]?.value||'';
+    const desc=allInp[1]?.value||'', hs=allInp[2]?.value||'', origin=allInp[3]?.value||'';
     if(!qty&&!desc) return;
     hasCCI=true;
     const lineTotal=qty*unit; subTotal+=lineTotal;
-    const cells=[qty?String(qty):'',desc,hs,origin,
+    const cells=[qty?String(qty):'', desc, hs, origin,
       unit?unit.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'',
       lineTotal?lineTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):''
     ];
-    if(ri%2===0){lw(0.1);F(252,252,250);S(232,232,229);bx(ML,y,CW,rowH,'FD');}
-    lw(0.15);S(205,205,200);doc.line(ML,y+rowH,ML+CW,y+rowH);
-    iC.forEach((cw,i)=>{if(i>0)doc.line(iX[i],y,iX[i],y+rowH);});
-    lw(0.25);S(0,0,0);C(20,20,18);fs(8);fw('normal');
+    if(ri%2===0){lw(0.1);F(...PDF.rowAlt);bx(ML,y,CW,rowH,'F');}
+    lw(0.35); S(...PDF.rowBorder); doc.line(ML,y+rowH,ML+CW,y+rowH);
+    lw(0.25); S(...PDF.colDiv); iC.forEach((cw,i)=>{if(i>0)doc.line(iX[i],y,iX[i],y+rowH);});
+    C(...PDF.bodyDark); fs(8.5); fw('normal');
     cells.forEach((c,i)=>{
-      if(i>=4) tx(doc.splitTextToSize(c,iC[i]-4)[0]||'',iX[i]+iC[i]-2,y+5.5,{align:'right'});
-      else tx(doc.splitTextToSize(c,iC[i]-4)[0]||'',iX[i]+2,y+5.5);
+      if(i>=4) tx(doc.splitTextToSize(c,iC[i]-4)[0]||'', iX[i]+iC[i]-2, y+6, {align:'right'});
+      else tx(doc.splitTextToSize(c,iC[i]-4)[0]||'', iX[i]+2, y+6);
     });
     y+=rowH;
   });
   if(!hasCCI){
-    lw(0.15);S(205,205,200);bx(ML,y,CW,rowH,'S');
-    C(168,168,162);fs(8);tx('No line items entered',ML+3,y+5.5);
-    lw(0.25);S(0,0,0);C(20,20,18);y+=rowH;
+    lw(0.3);S(...PDF.cellBorder);bx(ML,y,CW,rowH,'S');
+    C(...PDF.bodyFaint);fs(8.5);tx('No line items entered',ML+3,y+6);
+    y+=rowH;
   }
 
-  // ── TOTALS ────────────────────────────────────────────────────────────
+  // ── BOXES 15a–d: TOTALS ───────────────────────────────────────────
   y+=2;
   const freightAmt=parseFloat(document.getElementById('cci-freight')?.value)||0;
   const otherAmt  =parseFloat(document.getElementById('cci-other')?.value)||0;
   const grandTotal=subTotal+freightAmt+otherAmt;
-  const tbW=CW*0.45, tbX=ML+CW-tbW;
+  const tbW=CW*0.48, tbX=ML+CW-tbW;
   const tRows=[
-    ['15a. Total value of goods',fmt(subTotal)],
-    ...(freightAmt?[['15b. Freight charges',fmt(freightAmt)]]:[] ),
-    ...(otherAmt?  [['15c. Other charges',  fmt(otherAmt)]]:[] ),
-    ['15d. TOTAL DUTIABLE VALUE',fmt(grandTotal)],
+    ['15a. Total value of goods', fmt(subTotal)],
+    ...(freightAmt?[['15b. Freight charges', fmt(freightAmt)]]:[]),
+    ...(otherAmt?  [['15c. Other charges',   fmt(otherAmt)]]:[]),
+    ['15d. TOTAL DUTIABLE VALUE', fmt(grandTotal)],
   ];
   tRows.forEach((row,i)=>{
     const isTotal=i===tRows.length-1;
-    if(isTotal){lw(0.2);F(22,22,20);bx(tbX,y,tbW,9,'F');}
-    else{lw(0.15);S(205,205,200);doc.line(tbX,y,tbX+tbW,y);}
-    fs(isTotal?8:7.5); fw(isTotal?'bold':'normal');
-    C(isTotal?255:75,isTotal?255:75,isTotal?255:70);
-    tx(row[0],tbX+3,y+(isTotal?6.5:5.5));
-    tx(row[1],tbX+tbW-3,y+(isTotal?6.5:5.5),{align:'right'});
-    C(20,20,18); y+=isTotal?11:7;
+    if(isTotal){lw(0.3);F(...PDF.totBg);bx(tbX,y,tbW,10,'F');}
+    else{lw(0.35);S(...PDF.rowBorder);doc.line(tbX,y,tbX+tbW,y);}
+    fs(isTotal?9:8.5); fw(isTotal?'bold':'normal');
+    C(...(isTotal?PDF.totText:PDF.totSubTxt));
+    tx(row[0], tbX+4, y+(isTotal?7:6));
+    tx(row[1], tbX+tbW-4, y+(isTotal?7:6), {align:'right'});
+    C(...PDF.bodyDark); y+=isTotal?12:8;
   });
   y+=4;
 
-  // ── REMARKS ───────────────────────────────────────────────────────────
-  const notes = v('cci-notes');
-  const nafta = v('cci-nafta');
-  const cusmaCriterion  = v('cci-cusma-criterion');
-  const cusmaCertifier  = v('cci-cusma-certifier');
-  const cusmaBlanket    = v('cci-cusma-blanket');
-
-  // Build CUSMA origin certification statement if selected
-  let cusmaStatement = '';
-  if (nafta === 'CUSMA/USMCA') {
-    cusmaStatement =
-      'CUSMA/USMCA ORIGIN CERTIFICATION: I certify that the goods described in this invoice ' +
-      'are originating goods under the Canada-United States-Mexico Agreement (CUSMA/USMCA) ' +
-      'and qualify for preferential tariff treatment. ' +
-      'Origin criterion: ' + (cusmaCriterion || 'B') + '. ' +
-      (cusmaBlanket ? 'Blanket period: ' + cusmaBlanket + '. ' : '') +
-      (cusmaCertifier ? 'Certifier: ' + cusmaCertifier + '.' : '');
+  // ── BOX 16: REMARKS / CUSMA CERTIFICATION ────────────────────────
+  const notes=v('cci-notes'), nafta=v('cci-nafta');
+  const cusmaCriterion=v('cci-cusma-criterion'), cusmaCertifier=v('cci-cusma-certifier'), cusmaBlanket=v('cci-cusma-blanket');
+  let cusmaStatement='';
+  if(nafta==='CUSMA/USMCA'){
+    cusmaStatement='CUSMA/USMCA ORIGIN CERTIFICATION: I certify that the goods described in this invoice are originating goods under the Canada-United States-Mexico Agreement (CUSMA/USMCA) and qualify for preferential tariff treatment. Origin criterion: '+(cusmaCriterion||'B')+'. '+(cusmaBlanket?'Blanket period: '+cusmaBlanket+'. ':'')+(cusmaCertifier?'Certifier: '+cusmaCertifier+'.':'');
+  }
+  const fullRemarks=[cusmaStatement,notes].filter(Boolean).join(' | ');
+  if(fullRemarks){
+    lw(0.3);F(...PDF.secBg);S(...PDF.secBorder);bx(ML,y,CW,6.5,'FD');
+    fs(7);fw('bold');C(...PDF.secText);tx('16. REMARKS / SPECIAL DECLARATIONS',ML+3,y+5);
+    y+=6.5;
+    const noteLines=doc.splitTextToSize(fullRemarks,CW-8);
+    const noteH=noteLines.length*4.8+7;
+    lw(0.4);S(...PDF.cellBorder);bx(ML,y,CW,noteH,'S');
+    fs(8);fw('normal');C(...PDF.bodySub);
+    noteLines.forEach((l,i)=>tx(l,ML+4,y+7+(i*4.8)));
+    y+=noteH+3;
   }
 
-  const fullRemarks = [cusmaStatement, notes].filter(Boolean).join(' | ');
-
-  if (fullRemarks) {
-    lw(0.15); F(238,238,235); S(215,215,210); bx(ML,y,CW,5.5,'FD');
-    fs(6); fw('bold'); C(108,108,102); tx('16. REMARKS / SPECIAL DECLARATIONS', ML+2, y+4);
-    lw(0.25); S(0,0,0); C(20,20,18); y+=5.5;
-    const noteLines = doc.splitTextToSize(fullRemarks, CW-6);
-    const noteH = noteLines.length*4.2+6;
-    lw(0.2); S(205,205,200); bx(ML,y,CW,noteH,'S'); lw(0.25); S(0,0,0);
-    fs(7.5); fw('normal'); C(38,38,36);
-    noteLines.forEach((l,i) => tx(l, ML+3, y+6+(i*4.2)));
-    y += noteH+3;
-  }
-
-  // ── CERTIFICATION BLOCK ───────────────────────────────────────────────
-  if(y+40>PH-MT){doc.addPage();y=MT;}
-  lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,5.5,'FD');
-  fs(6);fw('bold');C(108,108,102);tx('17. CERTIFICATION',ML+2,y+4);
-  lw(0.25);S(0,0,0);C(20,20,18);y+=5.5;
-  lw(0.2);S(205,205,200);bx(ML,y,CW,36,'S');lw(0.25);S(0,0,0);
-  fs(7);fw('normal');C(75,75,70);
+  // ── BOX 17: CERTIFICATION ─────────────────────────────────────────
+  if(y+42>PH-MT){doc.addPage();y=MT;}
+  lw(0.3);F(...PDF.secBg);S(...PDF.secBorder);bx(ML,y,CW,6.5,'FD');
+  fs(7);fw('bold');C(...PDF.secText);tx('17. CERTIFICATION',ML+3,y+5);
+  y+=6.5;
+  lw(0.4);S(...PDF.cellBorder);bx(ML,y,CW,38,'S');
+  fs(8);fw('normal');C(...PDF.bodySub);
   const cert='I/We hereby certify that the information on this invoice is true, correct and complete, and that the goods were produced in the country shown herein. If the goods are entitled to preferential tariff treatment, I/we also certify that they comply with all origin requirements under the applicable trade agreement.';
-  doc.splitTextToSize(cert,CW-6).forEach((l,i)=>tx(l,ML+3,y+6+(i*4)));
-  // Three signature lines
-  const sigW3=CW/3;
-  const sigY=y+26;
-  lw(0.2);S(195,195,190);
-  [[' Authorized signature',' Name / Title',' Date'].map((lbl,i)=>{
+  doc.splitTextToSize(cert,CW-8).forEach((l,i)=>tx(l,ML+4,y+8+(i*5)));
+  const sigW3=CW/3, sigY=y+28;
+  const sigLbls=['Authorized signature','Name / Title','Date'];
+  sigLbls.forEach((lbl,i)=>{
     const sx=ML+i*sigW3;
-    doc.line(sx+3,sigY,sx+sigW3-3,sigY);
-    fs(6.5);fw('normal');C(128,128,122);tx(lbl,sx+3,sigY+4);
-  })];
-  y+=38+3;
+    lw(0.5); S(...PDF.sigLine); doc.line(sx+4,sigY,sx+sigW3-4,sigY);
+    C(...PDF.sigLbl); fs(7.5); fw('normal'); tx(lbl,sx+4,sigY+5);
+  });
+  y+=40+3;
 
-  // ── FOOTER ────────────────────────────────────────────────────────────
-  if(y+12>PH-MT){doc.addPage();y=MT;}
-  lw(0.15);S(205,205,200);doc.line(ML,y,ML+CW,y);y+=3;
-  fs(5.8);fw('normal');C(155,155,150);
+  // ── FOOTER ────────────────────────────────────────────────────────
+  if(y+14>PH-MT){doc.addPage();y=MT;}
+  lw(0.5);S(...PDF.footerLine);doc.line(ML,y,ML+CW,y);y+=4;
+  fs(6);fw('normal');C(...PDF.footerTxt);
   tx('This document is prepared in accordance with CBSA requirements. False statements may result in penalties under the Customs Act. / Ce document est préparé conformément aux exigences de l\'ASFC.', ML, y);
 
   doc.save((invNum!=='N/A'?invNum:'CCI')+'_'+(v('cci-date')||'undated')+'.pdf');
