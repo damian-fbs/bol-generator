@@ -858,6 +858,60 @@ function pdfHelpers(doc) {
   };
 }
 
+// Smart table row renderer — wraps text, sizes each row to fit content
+// colDefs: [{x, w, align:'left'|'right'}]
+// dataRows: array of arrays matching colDefs order
+// Returns new y after rendering
+function drawSmartRows(doc, colDefs, dataRows, startY, opts) {
+  opts = opts || {};
+  const lineH  = opts.lineH   || 4.5;
+  const padV   = opts.padV    || 2.5;
+  const minH   = opts.minH    || 8.5;
+  const fsize  = opts.fontSize|| 8.5;
+  const leftX  = colDefs[0].x;
+  const totalW = colDefs.reduce((s,c)=>s+c.w, 0);
+  let y = startY;
+
+  dataRows.forEach((row, ri) => {
+    // Wrap each cell
+    const wrapped = colDefs.map((col,ci) => {
+      return doc.splitTextToSize(String(row[ci]||''), col.w - 4);
+    });
+    const maxLines = Math.max(1, ...wrapped.map(w=>w.length));
+    const rowH = Math.max(minH, maxLines * lineH + padV * 2);
+
+    // Alternating stripe
+    if(ri%2===0){
+      doc.setFillColor(...PDF.rowAlt);
+      doc.setLineWidth(0.1);
+      doc.rect(leftX, y, totalW, rowH, 'F');
+    }
+    // Bottom rule
+    doc.setLineWidth(0.35);
+    doc.setDrawColor(...PDF.rowBorder);
+    doc.line(leftX, y+rowH, leftX+totalW, y+rowH);
+    // Column dividers
+    doc.setLineWidth(0.25);
+    doc.setDrawColor(...PDF.colDiv);
+    colDefs.forEach((col,ci)=>{ if(ci>0) doc.line(col.x, y, col.x, y+rowH); });
+    // Text
+    doc.setTextColor(...PDF.bodyDark);
+    doc.setFontSize(fsize);
+    doc.setFont(undefined,'normal');
+    colDefs.forEach((col,ci)=>{
+      wrapped[ci].forEach((line,li)=>{
+        const ty = y + padV + lineH*0.85 + li*lineH;
+        if(col.align==='right')
+          doc.text(line, col.x+col.w-2, ty, {align:'right'});
+        else
+          doc.text(line, col.x+2, ty);
+      });
+    });
+    y += rowH;
+  });
+  return y;
+}
+
 // ── Generate BOL PDF ─────────────────────────────────────────────────
 function generateBOL() {
   if (typeof window.jspdf==='undefined') { alert('PDF library loading, try again.'); return; }
@@ -964,29 +1018,24 @@ function generateBOL() {
   y+=7;
 
   const fRows=document.querySelectorAll('#bol-freight-tbody tr');
-  const rowH=8.5; let hasRows=false;
-  fRows.forEach((row,ri)=>{
+  const bolColDefs = fC.map((w,i)=>({x:fX[i], w, align:'left'}));
+  const bolDataRows=[];
+  fRows.forEach(row=>{
     const inp=row.querySelectorAll('input');
     const sel=row.querySelectorAll('select');
     const units=inp[0]?.value||'', desc=inp[1]?.value||'', wt=inp[2]?.value||'';
     if(!units&&!desc&&!wt) return;
-    hasRows=true;
-    const cells=[units,sel[0]?.value||'',desc,wt?Number(wt).toLocaleString():'',inp[3]?.value||'',sel[1]?.value||'',inp[4]?.value||''];
-    if(ri%2===0){lw(0.1);F(...PDF.rowAlt);bx(ML,y,CW,rowH,'F');}
-    lw(0.35); S(...PDF.rowBorder); doc.line(ML,y+rowH,ML+CW,y+rowH);
-    lw(0.25); S(...PDF.colDiv);
-    fC.forEach((cw,i)=>{if(i>0)doc.line(fX[i],y,fX[i],y+rowH);});
-    C(...PDF.bodyDark); fs(8.5); fw('normal');
-    cells.forEach((c,i)=>tx(doc.splitTextToSize(c,fC[i]-4)[0]||'', fX[i]+2, y+6));
-    y+=rowH;
+    bolDataRows.push([units, sel[0]?.value||'', desc, wt?Number(wt).toLocaleString():'', inp[3]?.value||'', sel[1]?.value||'', inp[4]?.value||'']);
   });
-  if(!hasRows){
-    lw(0.3);S(...PDF.cellBorder);bx(ML,y,CW,rowH,'S');
+  const tableStartY = y;
+  if(bolDataRows.length){
+    y = drawSmartRows(doc, bolColDefs, bolDataRows, y);
+  } else {
+    lw(0.3);S(...PDF.cellBorder);bx(ML,y,CW,8.5,'S');
     C(...PDF.bodyFaint);fs(8.5);tx('No freight line items entered',ML+3,y+6);
-    y+=rowH;
+    y+=8.5;
   }
-  // outer table border
-  lw(0.5); S(...PDF.cellBorder); bx(ML,y-rowH*(hasRows?fRows.length:1)-7,CW,rowH*(hasRows?fRows.length:1)+7,'S');
+  lw(0.5); S(...PDF.cellBorder); bx(ML,tableStartY,CW,y-tableStartY,'S');
 
   // ── TOTALS BAR ────────────────────────────────────────────────────
   y+=1;
@@ -1141,35 +1190,29 @@ function generateCI() {
   y+=7;
 
   const ciRows=document.querySelectorAll('#ci-tbody tr');
-  const rowH=8.5; let subTotal=0; let hasCI=false;
-  ciRows.forEach((row,ri)=>{
+  let subTotal=0; let hasCI=false;
+  const ciColDefs=iC.map((w,i)=>({x:iX[i], w, align:i>=4?'right':'left'}));
+  const ciDataRows=[];
+  ciRows.forEach(row=>{
     const inp=row.querySelectorAll('input[type=number]');
-    const qty=parseFloat(inp[0]?.value)||0;
-    const unit=parseFloat(inp[1]?.value)||0;
+    const qty=parseFloat(inp[0]?.value)||0, unit=parseFloat(inp[1]?.value)||0;
     const allInputs=row.querySelectorAll('input');
     const desc=allInputs[1]?.value||'', hs=allInputs[2]?.value||'', origin=allInputs[3]?.value||'';
     if(!qty&&!desc) return;
     hasCI=true;
     const lineTotal=qty*unit; subTotal+=lineTotal;
-    const cells=[qty?String(qty):'', desc, hs, origin,
+    ciDataRows.push([
+      qty?String(qty):'', desc, hs, origin,
       unit?fmt(unit).replace(cur+' ',''):'',
       lineTotal?fmt(lineTotal).replace(cur+' ',''):''
-    ];
-    if(ri%2===0){lw(0.1);F(...PDF.rowAlt);bx(ML,y,CW,rowH,'F');}
-    lw(0.35); S(...PDF.rowBorder); doc.line(ML,y+rowH,ML+CW,y+rowH);
-    lw(0.25); S(...PDF.colDiv); iC.forEach((cw,i)=>{if(i>0)doc.line(iX[i],y,iX[i],y+rowH);});
-    C(...PDF.bodyDark); fs(8.5); fw('normal');
-    cells.forEach((c,i)=>{
-      const clipped=doc.splitTextToSize(c,iC[i]-4)[0]||'';
-      if(i>=4) tx(clipped, iX[i]+iC[i]-2, y+6, {align:'right'});
-      else tx(clipped, iX[i]+2, y+6);
-    });
-    y+=rowH;
+    ]);
   });
-  if(!hasCI){
-    lw(0.3);S(...PDF.cellBorder);bx(ML,y,CW,rowH,'S');
+  if(ciDataRows.length){
+    y = drawSmartRows(doc, ciColDefs, ciDataRows, y);
+  } else {
+    lw(0.3);S(...PDF.cellBorder);bx(ML,y,CW,8.5,'S');
     C(...PDF.bodyFaint);fs(8.5);tx('No line items entered',ML+3,y+6);
-    y+=rowH;
+    y+=8.5;
   }
 
   // ── TOTALS ────────────────────────────────────────────────────────
@@ -1392,8 +1435,10 @@ function generateCCI() {
   y+=7;
 
   const cciRows=document.querySelectorAll('#cci-tbody tr');
-  const rowH=8.5; let subTotal=0; let hasCCI=false;
-  cciRows.forEach((row,ri)=>{
+  let subTotal=0; let hasCCI=false;
+  const cciColDefs=iC.map((w,i)=>({x:iX[i], w, align:i>=4?'right':'left'}));
+  const cciDataRows=[];
+  cciRows.forEach(row=>{
     const nums=row.querySelectorAll('input[type=number]');
     const qty=parseFloat(nums[0]?.value)||0, unit=parseFloat(nums[1]?.value)||0;
     const allInp=row.querySelectorAll('input');
@@ -1401,24 +1446,20 @@ function generateCCI() {
     if(!qty&&!desc) return;
     hasCCI=true;
     const lineTotal=qty*unit; subTotal+=lineTotal;
-    const cells=[qty?String(qty):'', desc, hs, origin,
+    cciDataRows.push([
+      qty?String(qty):'', desc, hs, origin,
       unit?unit.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'',
       lineTotal?lineTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):''
-    ];
-    if(ri%2===0){lw(0.1);F(...PDF.rowAlt);bx(ML,y,CW,rowH,'F');}
-    lw(0.35); S(...PDF.rowBorder); doc.line(ML,y+rowH,ML+CW,y+rowH);
-    lw(0.25); S(...PDF.colDiv); iC.forEach((cw,i)=>{if(i>0)doc.line(iX[i],y,iX[i],y+rowH);});
-    C(...PDF.bodyDark); fs(8.5); fw('normal');
-    cells.forEach((c,i)=>{
-      if(i>=4) tx(doc.splitTextToSize(c,iC[i]-4)[0]||'', iX[i]+iC[i]-2, y+6, {align:'right'});
-      else tx(doc.splitTextToSize(c,iC[i]-4)[0]||'', iX[i]+2, y+6);
-    });
-    y+=rowH;
+    ]);
   });
-  if(!hasCCI){
-    lw(0.3);S(...PDF.cellBorder);bx(ML,y,CW,rowH,'S');
-    C(...PDF.bodyFaint);fs(8.5);tx('No line items entered',ML+3,y+6);
-    y+=rowH;
+  if(cciDataRows.length){
+    y = drawSmartRows(doc, cciColDefs, cciDataRows, y);
+  } else {
+    doc.setLineWidth(0.3); doc.setDrawColor(...PDF.cellBorder);
+    doc.rect(ML,y,CW,8.5,'S');
+    doc.setTextColor(...PDF.bodyFaint); doc.setFontSize(8.5);
+    doc.text('No line items entered', ML+3, y+6);
+    y+=8.5;
   }
 
   // ── BOXES 15a–d: TOTALS ───────────────────────────────────────────
