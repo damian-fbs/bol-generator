@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOL Generator</title>
+<title>Freight Documents</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,22 +22,41 @@
     }
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+  /* ── Header ── */
   header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--text); text-decoration: none; }
   .logo-icon { width: 28px; height: 28px; background: var(--text); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
   .logo-icon svg { width: 16px; height: 16px; }
   .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  /* ── Tabs ── */
+  .tab-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 0; }
+  .tab-btn { padding: 12px 20px; font-size: 13px; font-weight: 500; color: var(--text-secondary); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; transition: color 0.15s; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Layout ── */
   .main { max-width: 860px; margin: 0 auto; padding: 32px 24px 64px; }
   .page-header { margin-bottom: 28px; }
   .page-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
   .page-header p { color: var(--text-secondary); font-size: 14px; }
+
+  /* ── Cards ── */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 12px; }
   .card-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; display: flex; align-items: center; gap: 7px; }
   .card-title svg { width: 14px; height: 14px; opacity: 0.7; }
+
+  /* ── Grids ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
   .party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   .party-grid .card { margin-bottom: 0; }
+
+  /* ── Fields ── */
   .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
   .field:last-child { margin-bottom: 0; }
   label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
@@ -51,12 +70,17 @@
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
   input[readonly] { background: var(--surface-alt); color: var(--text-secondary); cursor: default; }
   select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b67' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
+
+  /* ── Tables ── */
   .freight-wrap { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }
   table { width: 100%; border-collapse: collapse; min-width: 680px; font-size: 12px; }
   thead th { text-align: left; padding: 6px 8px; font-size: 11px; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); white-space: nowrap; }
   tbody td { padding: 3px 4px; }
   tbody td input, tbody td select { height: 30px; font-size: 12px; padding: 4px 7px; }
   tbody tr:last-child td { padding-bottom: 8px; }
+  .ci-table { min-width: 580px; }
+
+  /* ── Buttons ── */
   .add-line-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px 0; font-family: inherit; font-weight: 500; }
   .add-line-btn:hover { opacity: 0.75; }
   .remove-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px; border-radius: 4px; line-height: 1; font-size: 16px; display: flex; align-items: center; }
@@ -76,12 +100,21 @@
   .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
   .status-msg { font-size: 13px; color: var(--success); display: none; align-items: center; gap: 6px; }
   .status-msg.visible { display: flex; }
+
+  /* ── CI totals summary ── */
+  .ci-summary { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .ci-summary-row { display: flex; gap: 24px; font-size: 13px; }
+  .ci-summary-row .lbl { color: var(--text-secondary); }
+  .ci-summary-row .val { font-weight: 600; min-width: 80px; text-align: right; }
+  .ci-summary-row.total .val { font-size: 15px; }
+
   @media (max-width: 640px) {
     .party-grid { grid-template-columns: 1fr; }
     .grid-3 { grid-template-columns: 1fr 1fr; }
     .grid-4 { grid-template-columns: 1fr 1fr; }
     .acc-grid { grid-template-columns: 1fr 1fr; }
     .main { padding: 20px 16px 48px; }
+    .tab-btn { padding: 10px 14px; font-size: 12px; }
   }
 </style>
 </head>
@@ -99,18 +132,28 @@
         <path d="M10.5 12.5l1 1 2-2" stroke="#057a55" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    BOL Generator
+    Freight Docs
   </a>
-  <div class="header-actions">
-    <button class="btn btn-secondary" onclick="clearForm()" style="padding:6px 14px;font-size:13px;">Clear</button>
-    <button class="btn btn-primary" onclick="generateBOL()" style="padding:6px 14px;font-size:13px;">
+  <div class="header-actions" id="header-actions">
+    <button class="btn btn-secondary" onclick="clearActive()" style="padding:6px 14px;font-size:13px;">Clear</button>
+    <button class="btn btn-primary" onclick="downloadActive()" style="padding:6px 14px;font-size:13px;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Download PDF
+      <span id="dl-label">Download PDF</span>
     </button>
   </div>
 </header>
 
-<main class="main">
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('bol', this)">Bill of Lading</button>
+  <button class="tab-btn" onclick="switchTab('ci', this)">Commercial Invoice</button>
+  <button class="tab-btn" onclick="switchTab('cci', this)">Canadian Customs Invoice</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  BOL TAB                                                        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-bol">
+<div class="main">
   <div class="page-header">
     <h1>Bill of Lading</h1>
     <p>Fill in the shipment details below, then download a print-ready PDF.</p>
@@ -152,7 +195,7 @@
         Shipper / from
       </div>
       <div class="field"><label for="ship-name">Company name</label><input type="text" id="ship-name" placeholder="Acme Manufacturing"></div>
-      <div class="field"><label for="ship-addr">Street address</label><input type="text" id="ship-addr" placeholder="1234 Industrial Pkwy, Suite 100"></div>
+      <div class="field"><label for="ship-addr">Street address</label><input type="text" id="ship-addr" placeholder="1234 Industrial Pkwy"></div>
       <div class="grid-3">
         <div class="field"><label for="ship-city">City</label><input type="text" id="ship-city" placeholder="Chicago"></div>
         <div class="field"><label for="ship-state">State</label><input type="text" id="ship-state" placeholder="IL" maxlength="2"></div>
@@ -183,22 +226,16 @@
     </div>
     <div class="freight-wrap">
       <table>
-        <thead>
-          <tr>
-            <th style="width:52px;">Units</th>
-            <th style="width:100px;">Pkg type</th>
-            <th>Commodity description</th>
-            <th style="width:90px;">Weight (lbs)</th>
-            <th style="width:100px;">Dimensions</th>
-            <th style="width:72px;">Class</th>
-            <th style="width:88px;">NMFC code</th>
-            <th style="width:32px;"></th>
-          </tr>
-        </thead>
-        <tbody id="freight-tbody"></tbody>
+        <thead><tr>
+          <th style="width:52px;">Units</th><th style="width:100px;">Pkg type</th>
+          <th>Commodity description</th><th style="width:90px;">Weight (lbs)</th>
+          <th style="width:100px;">Dimensions</th><th style="width:72px;">Class</th>
+          <th style="width:88px;">NMFC code</th><th style="width:32px;"></th>
+        </tr></thead>
+        <tbody id="bol-freight-tbody"></tbody>
       </table>
     </div>
-    <button class="add-line-btn" onclick="addRow()">
+    <button class="add-line-btn" onclick="bolAddRow()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add line item
     </button>
@@ -233,345 +270,1157 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Download BOL PDF
     </button>
-    <button class="btn btn-secondary" onclick="clearForm()">Clear form</button>
-    <span class="status-msg" id="status-msg">
+    <button class="btn btn-secondary" onclick="clearBOL()">Clear form</button>
+    <span class="status-msg" id="bol-status">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
       PDF downloaded
     </span>
   </div>
-</main>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  COMMERCIAL INVOICE TAB                                         -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-ci">
+<div class="main">
+  <div class="page-header">
+    <h1>Commercial Invoice</h1>
+    <p>For customs and international shipments. Download a print-ready PDF.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Invoice details
+    </div>
+    <div class="grid-4">
+      <div class="field"><label for="ci-number">Invoice number</label><input type="text" id="ci-number" placeholder="INV-2026-001"></div>
+      <div class="field"><label for="ci-date">Invoice date</label><input type="date" id="ci-date"></div>
+      <div class="field"><label for="ci-po">PO / Reference number</label><input type="text" id="ci-po" placeholder="Optional"></div>
+      <div class="field">
+        <label for="ci-currency">Currency</label>
+        <select id="ci-currency">
+          <option value="USD">USD — US Dollar</option>
+          <option value="CAD">CAD — Canadian Dollar</option>
+          <option value="EUR">EUR — Euro</option>
+          <option value="GBP">GBP — British Pound</option>
+          <option value="MXN">MXN — Mexican Peso</option>
+          <option value="CNY">CNY — Chinese Yuan</option>
+          <option value="JPY">JPY — Japanese Yen</option>
+          <option value="AUD">AUD — Australian Dollar</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-3" style="margin-top:4px;">
+      <div class="field">
+        <label for="ci-incoterm">Incoterms</label>
+        <select id="ci-incoterm">
+          <option value="">— Select —</option>
+          <option value="EXW">EXW — Ex Works</option>
+          <option value="FCA">FCA — Free Carrier</option>
+          <option value="CPT">CPT — Carriage Paid To</option>
+          <option value="CIP">CIP — Carriage & Insurance Paid</option>
+          <option value="DAP">DAP — Delivered at Place</option>
+          <option value="DPU">DPU — Delivered at Place Unloaded</option>
+          <option value="DDP">DDP — Delivered Duty Paid</option>
+          <option value="FAS">FAS — Free Alongside Ship</option>
+          <option value="FOB">FOB — Free On Board</option>
+          <option value="CFR">CFR — Cost and Freight</option>
+          <option value="CIF">CIF — Cost, Insurance & Freight</option>
+        </select>
+      </div>
+      <div class="field"><label for="ci-bol-ref">BOL / Shipment reference</label><input type="text" id="ci-bol-ref" placeholder="Link to BOL number"></div>
+      <div class="field"><label for="ci-reason">Reason for export</label>
+        <select id="ci-reason">
+          <option value="Sale">Sale</option>
+          <option value="Return">Return</option>
+          <option value="Repair">Repair</option>
+          <option value="Gift">Gift</option>
+          <option value="Sample">Sample</option>
+          <option value="Personal use">Personal use</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="party-grid">
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Seller / Exporter
+      </div>
+      <div class="field"><label for="ci-sel-name">Company name</label><input type="text" id="ci-sel-name" placeholder="Acme Manufacturing"></div>
+      <div class="field"><label for="ci-sel-addr">Street address</label><input type="text" id="ci-sel-addr" placeholder="1234 Industrial Pkwy"></div>
+      <div class="grid-3">
+        <div class="field"><label for="ci-sel-city">City</label><input type="text" id="ci-sel-city" placeholder="Chicago"></div>
+        <div class="field"><label for="ci-sel-state">State/Province</label><input type="text" id="ci-sel-state" placeholder="IL"></div>
+        <div class="field"><label for="ci-sel-zip">ZIP/Postal</label><input type="text" id="ci-sel-zip" placeholder="60601"></div>
+      </div>
+      <div class="grid-2" style="margin-top:4px;">
+        <div class="field"><label for="ci-sel-country">Country</label><input type="text" id="ci-sel-country" placeholder="United States"></div>
+        <div class="field"><label for="ci-sel-tax">Tax ID / EIN</label><input type="text" id="ci-sel-tax" placeholder="12-3456789"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Buyer / Importer
+      </div>
+      <div class="field"><label for="ci-buy-name">Company name</label><input type="text" id="ci-buy-name" placeholder="Global Imports Ltd."></div>
+      <div class="field"><label for="ci-buy-addr">Street address</label><input type="text" id="ci-buy-addr" placeholder="789 Commerce Blvd"></div>
+      <div class="grid-3">
+        <div class="field"><label for="ci-buy-city">City</label><input type="text" id="ci-buy-city" placeholder="Toronto"></div>
+        <div class="field"><label for="ci-buy-state">State/Province</label><input type="text" id="ci-buy-state" placeholder="ON"></div>
+        <div class="field"><label for="ci-buy-zip">ZIP/Postal</label><input type="text" id="ci-buy-zip" placeholder="M5H 2N2"></div>
+      </div>
+      <div class="grid-2" style="margin-top:4px;">
+        <div class="field"><label for="ci-buy-country">Country</label><input type="text" id="ci-buy-country" placeholder="Canada"></div>
+        <div class="field"><label for="ci-buy-tax">Tax ID / VAT</label><input type="text" id="ci-buy-tax" placeholder="Optional"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Line items
+    </div>
+    <div class="freight-wrap">
+      <table class="ci-table">
+        <thead><tr>
+          <th style="width:44px;">Qty</th>
+          <th>Description of goods</th>
+          <th style="width:90px;">HS / HTS code</th>
+          <th style="width:72px;">Country of origin</th>
+          <th style="width:88px;">Unit price</th>
+          <th style="width:88px;">Total</th>
+          <th style="width:28px;"></th>
+        </tr></thead>
+        <tbody id="ci-tbody"></tbody>
+      </table>
+    </div>
+    <button class="add-line-btn" onclick="ciAddRow()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add line item
+    </button>
+
+    <div class="ci-summary">
+      <div class="ci-summary-row"><span class="lbl">Subtotal</span><span class="val" id="ci-subtotal">—</span></div>
+      <div class="ci-summary-row">
+        <span class="lbl">Freight / Insurance</span>
+        <input type="number" id="ci-freight" placeholder="0.00" step="0.01" min="0" oninput="ciRecalc()" style="width:100px;height:28px;font-size:13px;text-align:right;">
+      </div>
+      <div class="ci-summary-row total" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
+        <span class="lbl" style="font-weight:600;">Total Invoice Value</span>
+        <span class="val" id="ci-total" style="font-weight:700;">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Additional details
+    </div>
+    <div class="grid-3">
+      <div class="field"><label for="ci-origin-country">Country of origin (default)</label><input type="text" id="ci-origin-country" placeholder="United States"></div>
+      <div class="field"><label for="ci-port">Port of entry</label><input type="text" id="ci-port" placeholder="e.g. Windsor, ON"></div>
+      <div class="field"><label for="ci-payment">Payment terms</label>
+        <select id="ci-payment">
+          <option value="">— Select —</option>
+          <option value="Net 30">Net 30</option>
+          <option value="Net 60">Net 60</option>
+          <option value="Due on receipt">Due on receipt</option>
+          <option value="Prepaid">Prepaid</option>
+          <option value="LC">Letter of Credit</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label for="ci-notes">Notes / special remarks</label>
+      <textarea id="ci-notes" placeholder="Customs notes, certifications, or any special declarations…"></textarea>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="generateCI()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download Invoice PDF
+    </button>
+    <button class="btn btn-secondary" onclick="clearCI()">Clear form</button>
+    <span class="status-msg" id="ci-status">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      PDF downloaded
+    </span>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  CANADIAN CUSTOMS INVOICE TAB                                   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-cci">
+<div class="main">
+  <div class="page-header">
+    <h1>Canadian Customs Invoice</h1>
+    <p>Required by the Canada Border Services Agency (CBSA) for commercial imports into Canada. Fields follow the official CCI / B3 format.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Document details
+    </div>
+    <div class="grid-4">
+      <div class="field"><label for="cci-number">Invoice number</label><input type="text" id="cci-number" placeholder="CCI-2026-001"></div>
+      <div class="field"><label for="cci-date">Invoice date</label><input type="date" id="cci-date"></div>
+      <div class="field"><label for="cci-po">PO / Reference number</label><input type="text" id="cci-po" placeholder="Optional"></div>
+      <div class="field">
+        <label for="cci-currency">Currency of settlement</label>
+        <select id="cci-currency">
+          <option value="CAD">CAD — Canadian Dollar</option>
+          <option value="USD">USD — US Dollar</option>
+          <option value="EUR">EUR — Euro</option>
+          <option value="GBP">GBP — British Pound</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-3" style="margin-top:4px;">
+      <div class="field">
+        <label for="cci-transport">Mode of transport</label>
+        <select id="cci-transport">
+          <option value="Truck">Truck</option>
+          <option value="Rail">Rail</option>
+          <option value="Air">Air</option>
+          <option value="Ocean">Ocean</option>
+          <option value="Courier">Courier</option>
+          <option value="Mail">Mail</option>
+        </select>
+      </div>
+      <div class="field"><label for="cci-port">Port / Place of direct shipment to Canada</label><input type="text" id="cci-port" placeholder="e.g. Windsor, ON"></div>
+      <div class="field">
+        <label for="cci-conditions">Conditions of sale</label>
+        <select id="cci-conditions">
+          <option value="FOB">FOB — Free On Board</option>
+          <option value="CIF">CIF — Cost, Insurance & Freight</option>
+          <option value="EXW">EXW — Ex Works</option>
+          <option value="FCA">FCA — Free Carrier</option>
+          <option value="DAP">DAP — Delivered at Place</option>
+          <option value="DDP">DDP — Delivered Duty Paid</option>
+          <option value="CFR">CFR — Cost and Freight</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="party-grid">
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Vendor / Exporter
+      </div>
+      <div class="field"><label for="cci-ven-name">Company name</label><input type="text" id="cci-ven-name" placeholder="Acme Manufacturing Inc."></div>
+      <div class="field"><label for="cci-ven-addr">Street address</label><input type="text" id="cci-ven-addr" placeholder="1234 Industrial Pkwy"></div>
+      <div class="grid-3">
+        <div class="field"><label for="cci-ven-city">City</label><input type="text" id="cci-ven-city" placeholder="Chicago"></div>
+        <div class="field"><label for="cci-ven-state">State</label><input type="text" id="cci-ven-state" placeholder="IL"></div>
+        <div class="field"><label for="cci-ven-zip">ZIP</label><input type="text" id="cci-ven-zip" placeholder="60601"></div>
+      </div>
+      <div class="field" style="margin-top:4px;"><label for="cci-ven-country">Country</label><input type="text" id="cci-ven-country" placeholder="United States" value="United States"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Consignee (Canadian Importer)
+      </div>
+      <div class="field"><label for="cci-con-name">Company name</label><input type="text" id="cci-con-name" placeholder="Great Lakes Imports Ltd."></div>
+      <div class="field"><label for="cci-con-addr">Street address</label><input type="text" id="cci-con-addr" placeholder="789 Commerce Blvd"></div>
+      <div class="grid-3">
+        <div class="field"><label for="cci-con-city">City</label><input type="text" id="cci-con-city" placeholder="Windsor"></div>
+        <div class="field"><label for="cci-con-prov">Province</label><input type="text" id="cci-con-prov" placeholder="ON" maxlength="2"></div>
+        <div class="field"><label for="cci-con-postal">Postal code</label><input type="text" id="cci-con-postal" placeholder="N9A 1A1"></div>
+      </div>
+      <div class="grid-2" style="margin-top:4px;">
+        <div class="field"><label for="cci-con-country">Country</label><input type="text" id="cci-con-country" placeholder="Canada" value="Canada"></div>
+        <div class="field"><label for="cci-importer-bn">Importer BN / Business Number</label><input type="text" id="cci-importer-bn" placeholder="e.g. 123456789 RM0001"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Sold-to party (if different from consignee)
+    </div>
+    <div class="grid-2">
+      <div class="field"><label for="cci-sold-name">Company name</label><input type="text" id="cci-sold-name" placeholder="Leave blank if same as consignee"></div>
+      <div class="field"><label for="cci-sold-addr">Address</label><input type="text" id="cci-sold-addr" placeholder="Street, City, Province, Postal"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Line items
+    </div>
+    <div class="freight-wrap">
+      <table class="ci-table">
+        <thead><tr>
+          <th style="width:40px;">Qty</th>
+          <th>Description of goods</th>
+          <th style="width:84px;">HS tariff code</th>
+          <th style="width:66px;">Origin</th>
+          <th style="width:70px;">Unit price</th>
+          <th style="width:84px;">Total value</th>
+          <th style="width:28px;"></th>
+        </tr></thead>
+        <tbody id="cci-tbody"></tbody>
+      </table>
+    </div>
+    <button class="add-line-btn" onclick="cciAddRow()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add line item
+    </button>
+    <div class="ci-summary">
+      <div class="ci-summary-row"><span class="lbl">Subtotal</span><span class="val" id="cci-subtotal">—</span></div>
+      <div class="ci-summary-row">
+        <span class="lbl">Freight charges</span>
+        <input type="number" id="cci-freight" placeholder="0.00" step="0.01" min="0" oninput="cciRecalc()" style="width:100px;height:28px;font-size:13px;text-align:right;">
+      </div>
+      <div class="ci-summary-row">
+        <span class="lbl">Other charges</span>
+        <input type="number" id="cci-other" placeholder="0.00" step="0.01" min="0" oninput="cciRecalc()" style="width:100px;height:28px;font-size:13px;text-align:right;">
+      </div>
+      <div class="ci-summary-row total" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
+        <span class="lbl" style="font-weight:600;">Total dutiable value</span>
+        <span class="val" id="cci-total" style="font-weight:700;">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      CBSA / Customs details
+    </div>
+    <div class="grid-3">
+      <div class="field"><label for="cci-origin-country">Country of origin of goods</label><input type="text" id="cci-origin-country" placeholder="United States" value="United States"></div>
+      <div class="field">
+        <label for="cci-nafta">Trade agreement</label>
+        <select id="cci-nafta">
+          <option value="">None / not applicable</option>
+          <option value="CUSMA/USMCA">CUSMA / USMCA (Canada-US-Mexico)</option>
+          <option value="CETA">CETA (Canada-EU)</option>
+          <option value="CPTPP">CPTPP</option>
+          <option value="CIFTA">CIFTA (Canada-Israel)</option>
+          <option value="CKFTA">CKFTA (Canada-Korea)</option>
+        </select>
+      </div>
+      <div class="field"><label for="cci-exporter-ref">Exporter reference / BN</label><input type="text" id="cci-exporter-ref" placeholder="e.g. 987654321 RM0001"></div>
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label for="cci-notes">Remarks / special declarations</label>
+      <textarea id="cci-notes" placeholder="e.g. 'These goods are of US origin and qualify for preferential tariff treatment under CUSMA.'"></textarea>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="generateCCI()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download CCI PDF
+    </button>
+    <button class="btn btn-secondary" onclick="clearCCI()">Clear form</button>
+    <span class="status-msg" id="cci-status">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      PDF downloaded
+    </span>
+  </div>
+</div>
+</div>
 
 <script>
-const CLASSES = ['50','55','60','65','70','77.5','85','92.5','100','110','125','150','175','200','250','300','400','500'];
-const PKG_TYPES = ['Pallets','Boxes','Drums','Bags','Bundles','Crates','Rolls','Pieces','Skids'];
-let rowIdx = 0;
-
-function addRow() {
-  rowIdx++;
-  const id = 'r' + rowIdx;
-  const tbody = document.getElementById('freight-tbody');
-  const tr = document.createElement('tr');
-  tr.id = id;
-  tr.innerHTML = `
-    <td><input type="number" min="1" placeholder="1" oninput="recalc()" style="width:48px;"></td>
-    <td><select style="width:96px;">${PKG_TYPES.map(p=>`<option>${p}</option>`).join('')}</select></td>
-    <td><input type="text" placeholder="e.g. Auto parts, boxed"></td>
-    <td><input type="number" min="0" step="0.1" placeholder="0" oninput="recalc()" style="width:82px;"></td>
-    <td><input type="text" placeholder="48x40x60" style="width:92px;"></td>
-    <td><select style="width:66px;">${CLASSES.map(c=>`<option>${c}</option>`).join('')}</select></td>
-    <td><input type="text" placeholder="e.g. 156600" style="width:82px;"></td>
-    <td><button class="remove-btn" onclick="removeRow('${id}')" aria-label="Remove row" title="Remove">x</button></td>
-  `;
-  tbody.appendChild(tr);
-  recalc();
+// ── Tab switching ────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('dl-label').textContent = name === 'bol' ? 'Download PDF' : 'Download PDF';
+}
+function downloadActive() {
+  if (document.getElementById('tab-bol').classList.contains('active')) generateBOL();
+  else if (document.getElementById('tab-ci').classList.contains('active')) generateCI();
+  else generateCCI();
+}
+function clearActive() {
+  if (document.getElementById('tab-bol').classList.contains('active')) clearBOL();
+  else if (document.getElementById('tab-ci').classList.contains('active')) clearCI();
+  else clearCCI();
 }
 
-function removeRow(id) { document.getElementById(id)?.remove(); recalc(); }
-
-function recalc() {
-  let units = 0, weight = 0;
-  document.querySelectorAll('#freight-tbody tr').forEach(row => {
-    const inputs = row.querySelectorAll('input[type=number]');
-    units += parseInt(inputs[0]?.value) || 0;
-    weight += parseFloat(inputs[1]?.value) || 0;
-  });
-  document.getElementById('total-units').value = units || '';
-  document.getElementById('total-weight').value = weight ? weight.toLocaleString(undefined,{maximumFractionDigits:1}) : '';
-}
-
+// ── Shared helpers ───────────────────────────────────────────────────
 function v(id) { return (document.getElementById(id)?.value || '').trim(); }
 function chk(id) { return document.getElementById(id)?.checked; }
-
-function clearForm() {
-  document.querySelectorAll('input:not([readonly]), select, textarea').forEach(el => {
-    if (el.type === 'checkbox') el.checked = false;
-    else if (el.type === 'date') el.value = new Date().toISOString().slice(0,10);
-    else el.value = '';
-  });
-  document.getElementById('freight-tbody').innerHTML = '';
-  rowIdx = 0;
-  recalc();
-  addRow();
+function fmtDate(raw) {
+  if (!raw) return 'N/A';
+  const [yr,mo,da] = raw.split('-');
+  return mo+'/'+da+'/'+yr;
 }
-
-function showStatus() {
-  const el = document.getElementById('status-msg');
+function showStatus(id) {
+  const el = document.getElementById(id);
   el.classList.add('visible');
   setTimeout(() => el.classList.remove('visible'), 3000);
 }
 
-function generateBOL() {
-  if (typeof window.jspdf === 'undefined') {
-    alert('PDF library is still loading. Please wait a moment and try again.');
-    return;
-  }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-  const PW = 215.9, PH = 279.4, ML = 14, MT = 14;
-  const CW = PW - ML * 2;
-  let y = MT;
+// ── BOL freight rows ─────────────────────────────────────────────────
+const CLASSES = ['50','55','60','65','70','77.5','85','92.5','100','110','125','150','175','200','250','300','400','500'];
+const PKG_TYPES = ['Pallets','Boxes','Drums','Bags','Bundles','Crates','Rolls','Pieces','Skids'];
+let bolRowIdx = 0;
 
-  // helpers
-  const F  = (r,g,b) => doc.setFillColor(r,g,b);
-  const S  = (r,g,b) => doc.setDrawColor(r,g,b);
-  const C  = (r,g,b) => doc.setTextColor(r,g,b);
-  const fw = w => doc.setFont(undefined, w);
-  const fs = s => doc.setFontSize(s);
-  const tx = (t,x,y,o) => doc.text(String(t||''), x, y, o||{});
-  const bx = (x,y,w,h,s) => doc.rect(x,y,w,h,s||'S');
-  const lw = w => doc.setLineWidth(w);
-
-  // Formatted date
-  const bolNum = v('bol-number') || 'N/A';
-  const shipDate = (() => {
-    const raw = v('ship-date');
-    if (!raw) return 'N/A';
-    const [yr,mo,da] = raw.split('-');
-    return mo+'/'+da+'/'+yr;
-  })();
-  const shipType = v('shipment-type') || 'Straight (non-negotiable)';
-  const carrierName = v('carrier-name') || '';
-
-  // ── HEADER: three zones ──────────────────────────────────────────
-  const HDR = 30;
-  const tW = CW * 0.40;  // title zone
-  const mW = CW * 0.23;  // BOL#/date zone
-  const pW = CW - tW - mW; // PRO sticker zone
-
-  // Zone 1 — dark title
-  lw(0.1); F(22,22,20); bx(ML, y, tW, HDR, 'F');
-  fs(13); fw('bold'); C(255,255,255);
-  tx('BILL OF LADING', ML+4, y+10);
-  fs(7); fw('normal'); C(160,160,155);
-  tx(shipType.toUpperCase(), ML+4, y+17);
-  fs(6.5); C(115,115,110);
-  tx('CARRIER: ' + (carrierName||'—'), ML+4, y+23.5);
-
-  // Zone 2 — BOL # and date, white bg
-  const mX = ML + tW;
-  lw(0.2); F(253,253,251); S(205,205,200); bx(mX, y, mW, HDR, 'FD');
-  fs(6.5); fw('bold'); C(118,118,112);
-  tx('BOL NUMBER', mX+3, y+6);
-  fs(11); fw('bold'); C(20,20,18);
-  tx(bolNum, mX+3, y+13.5);
-  fs(6.5); fw('bold'); C(118,118,112);
-  tx('SHIP DATE', mX+3, y+19.5);
-  fs(10); fw('bold'); C(20,20,18);
-  tx(shipDate, mX+3, y+27);
-
-  // Zone 3 — PRO sticker (dashed)
-  const pX = ML + tW + mW;
-  doc.setLineDashPattern([2,1.2], 0); S(145,145,140); lw(0.5);
-  bx(pX, y, pW, HDR, 'S');
-  doc.setLineDashPattern([],0); lw(0.15); S(205,205,200);
-  F(249,249,246); bx(pX, y, pW, 6, 'FD');
-  fs(6.5); fw('bold'); C(108,108,102);
-  tx('PRO NUMBER  —  AFFIX STICKER HERE', pX+3, y+4.5);
-  // write-in fallback line
-  lw(0.2); S(195,195,190);
-  doc.line(pX+4, y+HDR-7, pX+pW-4, y+HDR-7);
-  C(172,172,167); fs(6.5); fw('normal');
-  tx('Write PRO # if no sticker available', pX+4, y+HDR-3.5);
-
-  lw(0.25); S(0,0,0); C(20,20,18);
-  y += HDR + 2;
-
-  // ── META ROW ────────────────────────────────────────────────────
-  const mc = [CW*0.30, CW*0.26, CW*0.22, CW*0.22];
-  const ml = ['CARRIER NAME','PO / REFERENCE #','SHIPMENT TYPE','DECLARED VALUE'];
-  const mv = [
-    carrierName,
-    v('po-number'),
-    shipType,
-    v('declared-value') ? '$'+Number(v('declared-value')).toLocaleString() : ''
-  ];
-  let mx2 = ML;
-  mc.forEach((w,i) => {
-    lw(0.2); S(205,205,200); bx(mx2, y, w, 14, 'S');
-    fs(6.5); fw('bold'); C(128,128,122);
-    tx(ml[i], mx2+3, y+4.5);
-    fs(9); fw('normal'); C(20,20,18);
-    tx(doc.splitTextToSize(mv[i]||'—', w-5)[0]||'—', mx2+3, y+11);
-    mx2 += w;
+function bolAddRow() {
+  bolRowIdx++;
+  const id = 'br'+bolRowIdx;
+  const tbody = document.getElementById('bol-freight-tbody');
+  const tr = document.createElement('tr');
+  tr.id = id;
+  tr.innerHTML = `
+    <td><input type="number" min="1" placeholder="1" oninput="bolRecalc()" style="width:48px;"></td>
+    <td><select style="width:96px;">${PKG_TYPES.map(p=>`<option>${p}</option>`).join('')}</select></td>
+    <td><input type="text" placeholder="e.g. Auto parts, boxed"></td>
+    <td><input type="number" min="0" step="0.1" placeholder="0" oninput="bolRecalc()" style="width:82px;"></td>
+    <td><input type="text" placeholder="48x40x60" style="width:92px;"></td>
+    <td><select style="width:66px;">${CLASSES.map(c=>`<option>${c}</option>`).join('')}</select></td>
+    <td><input type="text" placeholder="e.g. 156600" style="width:82px;"></td>
+    <td><button class="remove-btn" onclick="bolRemoveRow('${id}')" title="Remove">x</button></td>
+  `;
+  tbody.appendChild(tr);
+  bolRecalc();
+}
+function bolRemoveRow(id) { document.getElementById(id)?.remove(); bolRecalc(); }
+function bolRecalc() {
+  let units=0, weight=0;
+  document.querySelectorAll('#bol-freight-tbody tr').forEach(row => {
+    const inp = row.querySelectorAll('input[type=number]');
+    units += parseInt(inp[0]?.value)||0;
+    weight += parseFloat(inp[1]?.value)||0;
   });
-  lw(0.25); S(0,0,0);
-  y += 16;
+  document.getElementById('total-units').value = units||'';
+  document.getElementById('total-weight').value = weight ? weight.toLocaleString(undefined,{maximumFractionDigits:1}) : '';
+}
+function clearBOL() {
+  document.querySelectorAll('#tab-bol input:not([readonly]), #tab-bol select, #tab-bol textarea').forEach(el => {
+    if (el.type==='checkbox') el.checked=false;
+    else if (el.type==='date') el.value=new Date().toISOString().slice(0,10);
+    else el.value='';
+  });
+  document.getElementById('bol-freight-tbody').innerHTML='';
+  bolRowIdx=0; bolRecalc(); bolAddRow();
+}
 
-  // ── SHIPPER & CONSIGNEE ─────────────────────────────────────────
-  // Draw boxes first, then text on top
-  const hW = CW / 2;
-  const partyH = 44;
-  const pData = [
-    { label:'SHIPPER / FROM', name:v('ship-name'), addr:v('ship-addr'), city:v('ship-city'), state:v('ship-state'), zip:v('ship-zip'), phone:v('ship-phone') },
-    { label:'CONSIGNEE / TO', name:v('cons-name'), addr:v('cons-addr'), city:v('cons-city'), state:v('cons-state'), zip:v('cons-zip'), phone:v('cons-phone') },
+// ── CI line items ────────────────────────────────────────────────────
+let ciRowIdx = 0;
+function ciAddRow() {
+  ciRowIdx++;
+  const id = 'cr'+ciRowIdx;
+  const tbody = document.getElementById('ci-tbody');
+  const tr = document.createElement('tr');
+  tr.id = id;
+  tr.innerHTML = `
+    <td><input type="number" min="1" placeholder="1" oninput="ciRecalc()" style="width:40px;"></td>
+    <td><input type="text" placeholder="e.g. Automotive brake pads, boxed"></td>
+    <td><input type="text" placeholder="e.g. 8708.30" style="width:86px;"></td>
+    <td><input type="text" placeholder="US" style="width:68px;"></td>
+    <td><input type="number" min="0" step="0.01" placeholder="0.00" oninput="ciRecalc()" style="width:84px;text-align:right;"></td>
+    <td><input type="text" id="ci-line-total-${ciRowIdx}" readonly style="width:84px;text-align:right;background:var(--surface-alt);color:var(--text-secondary);"></td>
+    <td><button class="remove-btn" onclick="ciRemoveRow('${id}')" title="Remove">x</button></td>
+  `;
+  tbody.appendChild(tr);
+  ciRecalc();
+}
+function ciRemoveRow(id) { document.getElementById(id)?.remove(); ciRecalc(); }
+function ciRecalc() {
+  const cur = v('ci-currency').split(' ')[0] || 'USD';
+  let sub = 0;
+  document.querySelectorAll('#ci-tbody tr').forEach(row => {
+    const inp = row.querySelectorAll('input[type=number]');
+    const qty = parseFloat(inp[0]?.value)||0;
+    const unit = parseFloat(inp[1]?.value)||0;
+    const line = qty*unit;
+    sub += line;
+    const totalEl = row.querySelector('input[readonly]');
+    if (totalEl) totalEl.value = line ? line.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
+  });
+  const freight = parseFloat(document.getElementById('ci-freight')?.value)||0;
+  const total = sub+freight;
+  const fmt = n => n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('ci-subtotal').textContent = sub ? cur+' '+fmt(sub) : '—';
+  document.getElementById('ci-total').textContent = total ? cur+' '+fmt(total) : '—';
+}
+function clearCI() {
+  document.querySelectorAll('#tab-ci input:not([readonly]), #tab-ci select, #tab-ci textarea').forEach(el => {
+    if (el.type==='date') el.value=new Date().toISOString().slice(0,10);
+    else el.value='';
+  });
+  document.getElementById('ci-tbody').innerHTML='';
+  ciRowIdx=0; ciRecalc(); ciAddRow();
+  document.getElementById('ci-currency').value='USD';
+}
+
+// ── PDF helpers shared ────────────────────────────────────────────────
+function pdfHelpers(doc) {
+  return {
+    F: (r,g,b) => doc.setFillColor(r,g,b),
+    S: (r,g,b) => doc.setDrawColor(r,g,b),
+    C: (r,g,b) => doc.setTextColor(r,g,b),
+    fw: w => doc.setFont(undefined,w),
+    fs: s => doc.setFontSize(s),
+    tx: (t,x,y,o) => doc.text(String(t||''),x,y,o||{}),
+    bx: (x,y,w,h,s) => doc.rect(x,y,w,h,s||'S'),
+    lw: w => doc.setLineWidth(w),
+  };
+}
+
+// ── Generate BOL PDF ─────────────────────────────────────────────────
+function generateBOL() {
+  if (typeof window.jspdf==='undefined') { alert('PDF library loading, try again.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const {F,S,C,fw,fs,tx,bx,lw} = pdfHelpers(doc);
+  const PW=215.9,PH=279.4,ML=14,MT=14,CW=PW-ML*2;
+  let y=MT;
+
+  const bolNum = v('bol-number')||'N/A';
+  const shipDate = fmtDate(v('ship-date'));
+  const shipType = v('shipment-type')||'Straight (non-negotiable)';
+  const carrier  = v('carrier-name')||'';
+
+  // Header
+  const HDR=30,tW=CW*0.40,mW=CW*0.23,pW=CW-tW-mW;
+  lw(0.1); F(22,22,20); bx(ML,y,tW,HDR,'F');
+  fs(13);fw('bold');C(255,255,255); tx('BILL OF LADING',ML+4,y+10);
+  fs(7);fw('normal');C(160,160,155); tx(shipType.toUpperCase(),ML+4,y+17);
+  fs(6.5);C(115,115,110); tx('CARRIER: '+(carrier||'—'),ML+4,y+23.5);
+
+  const mX=ML+tW;
+  lw(0.2);F(253,253,251);S(205,205,200);bx(mX,y,mW,HDR,'FD');
+  fs(6.5);fw('bold');C(118,118,112); tx('BOL NUMBER',mX+3,y+6);
+  fs(11);fw('bold');C(20,20,18); tx(bolNum,mX+3,y+13.5);
+  fs(6.5);fw('bold');C(118,118,112); tx('SHIP DATE',mX+3,y+19.5);
+  fs(10);fw('bold');C(20,20,18); tx(shipDate,mX+3,y+27);
+
+  const pX=ML+tW+mW;
+  doc.setLineDashPattern([2,1.2],0);S(145,145,140);lw(0.5);bx(pX,y,pW,HDR,'S');
+  doc.setLineDashPattern([],0);lw(0.15);S(205,205,200);
+  F(249,249,246);bx(pX,y,pW,6,'FD');
+  fs(6.5);fw('bold');C(108,108,102); tx('PRO NUMBER  —  AFFIX STICKER HERE',pX+3,y+4.5);
+  lw(0.2);S(195,195,190); doc.line(pX+4,y+HDR-7,pX+pW-4,y+HDR-7);
+  C(172,172,167);fs(6.5);fw('normal'); tx('Write PRO # if no sticker available',pX+4,y+HDR-3.5);
+
+  lw(0.25);S(0,0,0);C(20,20,18); y+=HDR+2;
+
+  // Meta row
+  const mc=[CW*0.30,CW*0.26,CW*0.22,CW*0.22];
+  const ml=['CARRIER NAME','PO / REFERENCE #','SHIPMENT TYPE','DECLARED VALUE'];
+  const mv=[carrier,v('po-number'),shipType,v('declared-value')?'$'+Number(v('declared-value')).toLocaleString():''];
+  let mx2=ML;
+  mc.forEach((w,i)=>{
+    lw(0.2);S(205,205,200);bx(mx2,y,w,14,'S');
+    fs(6.5);fw('bold');C(128,128,122); tx(ml[i],mx2+3,y+4.5);
+    fs(9);fw('normal');C(20,20,18); tx(doc.splitTextToSize(mv[i]||'—',w-5)[0]||'—',mx2+3,y+11);
+    mx2+=w;
+  });
+  lw(0.25);S(0,0,0); y+=16;
+
+  // Shipper/Consignee
+  const hW=CW/2,partyH=44;
+  const pData=[
+    {label:'SHIPPER / FROM',name:v('ship-name'),addr:v('ship-addr'),city:v('ship-city'),state:v('ship-state'),zip:v('ship-zip'),phone:v('ship-phone')},
+    {label:'CONSIGNEE / TO',name:v('cons-name'),addr:v('cons-addr'),city:v('cons-city'),state:v('cons-state'),zip:v('cons-zip'),phone:v('cons-phone')},
   ];
-
-  pData.forEach((p, i) => {
-    const px = ML + i * hW;
-    // label bar
-    lw(0.15); F(238,238,235); S(215,215,210); bx(px, y, hW, 6, 'FD');
-    fs(6.5); fw('bold'); C(108,108,102);
-    tx(p.label, px+3, y+4.5);
-    // content box
-    lw(0.2); S(205,205,200); bx(px, y+6, hW, partyH-6, 'S');
-    // text content
-    lw(0.25); S(0,0,0); C(20,20,18);
-    let ly = y + 13;
-    if (p.name) { fs(10); fw('bold'); tx(p.name, px+3, ly); fw('normal'); ly += 6.5; }
-    fs(8.5); C(38,38,36);
-    if (p.addr) { tx(p.addr, px+3, ly); ly += 5; }
-    const cl = [p.city, p.state].filter(Boolean).join(', ') + (p.zip ? '  '+p.zip : '');
-    if (cl.trim()) { tx(cl, px+3, ly); ly += 5; }
-    if (p.phone) { C(108,108,102); fs(8); tx('Tel: '+p.phone, px+3, ly); }
+  pData.forEach((p,i)=>{
+    const px=ML+i*hW;
+    lw(0.15);F(238,238,235);S(215,215,210);bx(px,y,hW,6,'FD');
+    fs(6.5);fw('bold');C(108,108,102); tx(p.label,px+3,y+4.5);
+    lw(0.2);S(205,205,200);bx(px,y+6,hW,partyH-6,'S');
+    lw(0.25);S(0,0,0);C(20,20,18);
+    let ly=y+13;
+    if(p.name){fs(10);fw('bold');tx(p.name,px+3,ly);fw('normal');ly+=6.5;}
+    fs(8.5);C(38,38,36);
+    if(p.addr){tx(p.addr,px+3,ly);ly+=5;}
+    const cl=[p.city,p.state].filter(Boolean).join(', ')+(p.zip?'  '+p.zip:'');
+    if(cl.trim()){tx(cl,px+3,ly);ly+=5;}
+    if(p.phone){C(108,108,102);fs(8);tx('Tel: '+p.phone,px+3,ly);}
     C(20,20,18);
   });
-  y += partyH + 3;
+  y+=partyH+3;
 
-  // ── FREIGHT TABLE ────────────────────────────────────────────────
-  // Section label
-  lw(0.15); F(238,238,235); S(215,215,210); bx(ML, y, CW, 6, 'FD');
-  fs(6.5); fw('bold'); C(108,108,102); tx('FREIGHT DETAILS', ML+3, y+4.5);
-  lw(0.25); S(0,0,0); C(20,20,18);
-  y += 6;
+  // Freight table
+  lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
+  fs(6.5);fw('bold');C(108,108,102);tx('FREIGHT DETAILS',ML+3,y+4.5);
+  lw(0.25);S(0,0,0);C(20,20,18);y+=6;
+  const fC=[13,20,0,22,24,14,24];
+  fC[2]=CW-fC.reduce((a,b)=>a+b,0);
+  const fX=[ML]; fC.forEach((w,i)=>fX.push(fX[i]+w));
+  const fH=['UNITS','PKG TYPE','COMMODITY DESCRIPTION','WT (LBS)','DIMENSIONS','CLASS','NMFC'];
+  lw(0.1);F(232,232,229);S(205,205,200);bx(ML,y,CW,6.5,'FD');
+  fs(6.5);fw('bold');C(98,98,92);fH.forEach((h,i)=>tx(h,fX[i]+2,y+4.7));
+  lw(0.25);S(0,0,0);C(20,20,18);y+=6.5;
 
-  const fC = [13, 20, 0, 22, 24, 14, 24];
-  fC[2] = CW - fC.reduce((a,b)=>a+b,0);
-  const fX = [ML];
-  fC.forEach((w,i) => fX.push(fX[i]+w));
-  const fH = ['UNITS','PKG TYPE','COMMODITY DESCRIPTION','WT (LBS)','DIMENSIONS','CLASS','NMFC'];
-
-  // header row
-  lw(0.1); F(232,232,229); S(205,205,200); bx(ML, y, CW, 6.5, 'FD');
-  fs(6.5); fw('bold'); C(98,98,92);
-  fH.forEach((h,i) => tx(h, fX[i]+2, y+4.7));
-  lw(0.25); S(0,0,0); C(20,20,18);
-  y += 6.5;
-
-  // data rows - only rows with actual content
-  const fRows = document.querySelectorAll('#freight-tbody tr');
-  const rowH = 8;
-  let hasRows = false;
-
-  fRows.forEach((row, ri) => {
-    const inp = row.querySelectorAll('input');
-    const sel = row.querySelectorAll('select');
-    const units  = inp[0]?.value || '';
-    const desc   = inp[1]?.value || '';
-    const wt     = inp[2]?.value || '';
-    const dims   = inp[3]?.value || '';
-    const nmfc   = inp[4]?.value || '';
-    const pkg    = sel[0]?.value || '';
-    const cls    = sel[1]?.value || '';
-    // skip completely empty rows (no units, no description, no weight)
-    if (!units && !desc && !wt) return;
-    hasRows = true;
-    const cells = [units, pkg, desc, wt ? Number(wt).toLocaleString() : '', dims, cls, nmfc];
-    if (ri%2===0) { lw(0.1); F(252,252,250); S(232,232,229); bx(ML,y,CW,rowH,'FD'); }
-    lw(0.15); S(205,205,200);
-    doc.line(ML, y+rowH, ML+CW, y+rowH);
-    fC.forEach((cw,i) => { if(i>0) doc.line(fX[i],y,fX[i],y+rowH); });
-    lw(0.25); S(0,0,0); C(20,20,18); fs(8.5); fw('normal');
-    cells.forEach((c,i) => { tx(doc.splitTextToSize(c,fC[i]-4)[0]||'', fX[i]+2, y+5.5); });
-    y += rowH;
+  const fRows=document.querySelectorAll('#bol-freight-tbody tr');
+  const rowH=8; let hasRows=false;
+  fRows.forEach((row,ri)=>{
+    const inp=row.querySelectorAll('input');
+    const sel=row.querySelectorAll('select');
+    const units=inp[0]?.value||'',desc=inp[1]?.value||'',wt=inp[2]?.value||'';
+    if(!units&&!desc&&!wt) return;
+    hasRows=true;
+    const cells=[units,sel[0]?.value||'',desc,wt?Number(wt).toLocaleString():'',inp[3]?.value||'',sel[1]?.value||'',inp[4]?.value||''];
+    if(ri%2===0){lw(0.1);F(252,252,250);S(232,232,229);bx(ML,y,CW,rowH,'FD');}
+    lw(0.15);S(205,205,200);doc.line(ML,y+rowH,ML+CW,y+rowH);
+    fC.forEach((cw,i)=>{if(i>0)doc.line(fX[i],y,fX[i],y+rowH);});
+    lw(0.25);S(0,0,0);C(20,20,18);fs(8.5);fw('normal');
+    cells.forEach((c,i)=>tx(doc.splitTextToSize(c,fC[i]-4)[0]||'',fX[i]+2,y+5.5));
+    y+=rowH;
   });
-
-  if (!hasRows) {
-    lw(0.15); S(205,205,200); bx(ML,y,CW,rowH,'S');
-    C(168,168,162); fs(8); tx('No freight line items entered', ML+3, y+5.5);
-    lw(0.25); S(0,0,0); C(20,20,18); y += rowH;
+  if(!hasRows){
+    lw(0.15);S(205,205,200);bx(ML,y,CW,rowH,'S');
+    C(168,168,162);fs(8);tx('No freight line items entered',ML+3,y+5.5);
+    lw(0.25);S(0,0,0);C(20,20,18);y+=rowH;
   }
 
-  // totals bar
-  y += 1;
-  lw(0.2); F(238,238,235); S(205,205,200); bx(ML,y,CW,8,'FD');
-  fs(7.5); fw('bold'); C(78,78,73);
-  const tU = v('total-units'), tW2 = v('total-weight'), dVal = v('declared-value');
-  tx('TOTAL UNITS: '+(tU||'—'), ML+3, y+5.5);
-  tx('TOTAL WEIGHT: '+(tW2 ? tW2+' lbs' : '—'), ML+45, y+5.5);
-  if (dVal) tx('DECLARED VALUE: $'+Number(dVal).toLocaleString(), ML+110, y+5.5);
-  lw(0.25); S(0,0,0); C(20,20,18);
-  y += 11;
+  // Totals bar
+  y+=1;lw(0.2);F(238,238,235);S(205,205,200);bx(ML,y,CW,8,'FD');
+  fs(7.5);fw('bold');C(78,78,73);
+  const tU=v('total-units'),tW2=v('total-weight'),dVal=v('declared-value');
+  tx('TOTAL UNITS: '+(tU||'—'),ML+3,y+5.5);
+  tx('TOTAL WEIGHT: '+(tW2?tW2+' lbs':'—'),ML+45,y+5.5);
+  if(dVal)tx('DECLARED VALUE: $'+Number(dVal).toLocaleString(),ML+110,y+5.5);
+  lw(0.25);S(0,0,0);C(20,20,18);y+=11;
 
-  // ── ACCESSORIALS ────────────────────────────────────────────────
-  const accItems = [
+  // Accessorials
+  const accItems=[
     ['acc-liftgate','Liftgate required'],['acc-appt','Appointment required'],
     ['acc-hazmat','HAZARDOUS MATERIALS'],['acc-residential','Residential delivery'],
     ['acc-inside','Inside delivery'],['acc-freeze','Protect from freeze'],
-  ].filter(([id]) => chk(id)).map(([,label]) => label);
-  const specInstr = v('special-instructions');
-
-  if (accItems.length || specInstr) {
-    lw(0.15); F(238,238,235); S(215,215,210); bx(ML, y, CW, 6, 'FD');
-    fs(6.5); fw('bold'); C(108,108,102); tx('ACCESSORIALS & SPECIAL INSTRUCTIONS', ML+3, y+4.5);
-    lw(0.25); S(0,0,0); C(20,20,18);
-    y += 6;
-    const aH = (accItems.length ? 8 : 0) + (specInstr ? doc.splitTextToSize(specInstr,CW-6).length*4.5+4 : 0);
-    lw(0.2); S(205,205,200); bx(ML,y,CW,Math.max(aH,10),'S'); lw(0.25); S(0,0,0);
-    let ay = y+7;
-    if (accItems.length) {
-      accItems.forEach((item,idx) => {
-        const ix = ML+3 + idx*(CW/accItems.length);
-        F(22,22,20); bx(ix, ay-3.5, 3, 3, 'F');
-        C(255,255,255); fs(5.5); tx('v', ix+0.8, ay-1);
-        C(20,20,18); fs(8); fw('normal'); tx(item, ix+4.5, ay-0.5);
+  ].filter(([id])=>chk(id)).map(([,label])=>label);
+  const specInstr=v('special-instructions');
+  if(accItems.length||specInstr){
+    lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
+    fs(6.5);fw('bold');C(108,108,102);tx('ACCESSORIALS & SPECIAL INSTRUCTIONS',ML+3,y+4.5);
+    lw(0.25);S(0,0,0);C(20,20,18);y+=6;
+    const aH=(accItems.length?8:0)+(specInstr?doc.splitTextToSize(specInstr,CW-6).length*4.5+4:0);
+    lw(0.2);S(205,205,200);bx(ML,y,CW,Math.max(aH,10),'S');lw(0.25);S(0,0,0);
+    let ay=y+7;
+    if(accItems.length){
+      accItems.forEach((item,idx)=>{
+        const ix=ML+3+idx*(CW/accItems.length);
+        F(22,22,20);bx(ix,ay-3.5,3,3,'F');
+        C(255,255,255);fs(5.5);tx('v',ix+0.8,ay-1);
+        C(20,20,18);fs(8);fw('normal');tx(item,ix+4.5,ay-0.5);
       });
-      ay += 7;
+      ay+=7;
     }
-    if (specInstr) {
-      fs(8.5); fw('normal'); C(38,38,36);
-      doc.splitTextToSize(specInstr,CW-6).forEach(l => { tx(l,ML+3,ay); ay+=4.5; });
+    if(specInstr){
+      fs(8.5);fw('normal');C(38,38,36);
+      doc.splitTextToSize(specInstr,CW-6).forEach(l=>{tx(l,ML+3,ay);ay+=4.5;});
     }
-    y += Math.max(aH,10)+3;
+    y+=Math.max(aH,10)+3;
   }
 
-  // ── SIGNATURES ──────────────────────────────────────────────────
-  const sigH = 38;
-  if (y+sigH+22 > PH-MT) { doc.addPage(); y = MT; }
-
-  lw(0.15); F(238,238,235); S(215,215,210); bx(ML, y, CW, 6, 'FD');
-  fs(6.5); fw('bold'); C(108,108,102); tx('SIGNATURES', ML+3, y+4.5);
-  lw(0.25); S(0,0,0); C(20,20,18);
-  y += 6;
-
-  const sW = CW / 2;
-  const sigs = [
-    { label:'Shipper', note:'Authorized signature confirms freight description is accurate' },
-    { label:'Carrier', note:'Signature confirms receipt of freight in described condition' },
+  // Signatures
+  const sigH=38;
+  if(y+sigH+22>PH-MT){doc.addPage();y=MT;}
+  lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
+  fs(6.5);fw('bold');C(108,108,102);tx('SIGNATURES',ML+3,y+4.5);
+  lw(0.25);S(0,0,0);C(20,20,18);y+=6;
+  const sW=CW/2;
+  const sigs=[
+    {label:'Shipper',note:'Authorized signature confirms freight description is accurate'},
+    {label:'Carrier',note:'Signature confirms receipt of freight in described condition'},
   ];
-  lw(0.2); S(205,205,200);
-  sigs.forEach((s,i) => {
-    const sx = ML + i*sW;
-    bx(sx, y, sW, sigH, 'S');
-    fs(9); fw('bold'); C(20,20,18); tx(s.label, sx+4, y+7);
-    fs(6.5); fw('normal'); C(138,138,132);
-    doc.splitTextToSize(s.note, sW-8).forEach((l,li) => tx(l, sx+4, y+13+(li*3.8)));
-    // signature line
-    const sl = y+sigH-14; S(195,195,190); doc.line(sx+4,sl,sx+sW-4,sl);
-    C(128,128,122); fs(7); tx('Signature & printed name', sx+4, sl+4);
-    // date line
-    const dl = y+sigH-5; doc.line(sx+4,dl,sx+sW/2,dl);
-    tx('Date', sx+4, dl+4);
-    C(20,20,18);
+  lw(0.2);S(205,205,200);
+  sigs.forEach((s,i)=>{
+    const sx=ML+i*sW;bx(sx,y,sW,sigH,'S');
+    fs(9);fw('bold');C(20,20,18);tx(s.label,sx+4,y+7);
+    fs(6.5);fw('normal');C(138,138,132);
+    doc.splitTextToSize(s.note,sW-8).forEach((l,li)=>tx(l,sx+4,y+13+(li*3.8)));
+    const sl=y+sigH-14;S(195,195,190);doc.line(sx+4,sl,sx+sW-4,sl);
+    C(128,128,122);fs(7);tx('Signature & printed name',sx+4,sl+4);
+    const dl=y+sigH-5;doc.line(sx+4,dl,sx+sW/2,dl);
+    tx('Date',sx+4,dl+4);C(20,20,18);
   });
-  lw(0.25); S(0,0,0);
-  y += sigH+5;
+  lw(0.25);S(0,0,0);y+=sigH+5;
 
-  // ── LEGAL FOOTER ────────────────────────────────────────────────
-  if (y+16 > PH-MT) { doc.addPage(); y = MT; }
-  lw(0.15); S(205,205,200); doc.line(ML,y,ML+CW,y); y+=3;
-  fs(5.8); fw('normal'); C(155,155,150);
-  const notice = 'NOTE: Liability Limitation for loss or damage in this shipment may be applicable. See 49 U.S.C. 14706(c)(1)(A) and (B). RECEIVED, subject to individually determined rates or contracts that have been agreed upon in writing between the carrier and shipper, if applicable, otherwise to the rates, classifications and rules that have been established by the carrier and are available to the shipper on request. The property described above, in apparent good order, except as noted (contents and condition of contents of packages unknown), marked, consigned, and destined as shown above, which said carrier agrees to carry to destination, if on its route, or otherwise deliver to another carrier on the route to destination. Every service to be performed hereunder shall be subject to all bill of lading terms and conditions in the governing classification on the date of shipment. Shipper hereby certifies that he is familiar with all the bill of lading terms and conditions in the governing classification and the said terms and conditions are hereby agreed to by the shipper and accepted for himself and his assigns.';
-  doc.splitTextToSize(notice, CW).forEach(l => { tx(l,ML,y); y+=3.2; });
+  // Footer
+  if(y+16>PH-MT){doc.addPage();y=MT;}
+  lw(0.15);S(205,205,200);doc.line(ML,y,ML+CW,y);y+=3;
+  fs(5.8);fw('normal');C(155,155,150);
+  const notice='NOTE: Liability Limitation for loss or damage in this shipment may be applicable. See 49 U.S.C. 14706(c)(1)(A) and (B). RECEIVED, subject to individually determined rates or contracts that have been agreed upon in writing between the carrier and shipper, if applicable, otherwise to the rates, classifications and rules that have been established by the carrier and are available to the shipper on request. The property described above, in apparent good order, except as noted (contents and condition of contents of packages unknown), marked, consigned, and destined as shown above, which said carrier agrees to carry to destination, if on its route, or otherwise deliver to another carrier on the route to destination. Every service to be performed hereunder shall be subject to all bill of lading terms and conditions in the governing classification on the date of shipment. Shipper hereby certifies that he is familiar with all the bill of lading terms and conditions in the governing classification and the said terms and conditions are hereby agreed to by the shipper and accepted for himself and his assigns.';
+  doc.splitTextToSize(notice,CW).forEach(l=>{tx(l,ML,y);y+=3.2;});
 
-  // save
-  const fname = (bolNum!=='N/A'?bolNum:'BOL')+'_'+(v('ship-date')||'undated')+'.pdf';
-  doc.save(fname);
-  showStatus();
+  doc.save((bolNum!=='N/A'?bolNum:'BOL')+'_'+(v('ship-date')||'undated')+'.pdf');
+  showStatus('bol-status');
 }
 
+// ── Generate Commercial Invoice PDF ──────────────────────────────────
+function generateCI() {
+  if (typeof window.jspdf==='undefined') { alert('PDF library loading, try again.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const {F,S,C,fw,fs,tx,bx,lw} = pdfHelpers(doc);
+  const PW=215.9,PH=279.4,ML=14,MT=14,CW=PW-ML*2;
+  let y=MT;
+
+  const invNum  = v('ci-number')||'N/A';
+  const invDate = fmtDate(v('ci-date'));
+  const cur     = v('ci-currency').split(' ')[0]||'USD';
+  const fmt     = n => cur+' '+Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // ── CI Header ──────────────────────────────────────────────────────
+  const HDR=30,tW=CW*0.52,rW=CW-tW;
+  lw(0.1);F(22,22,20);bx(ML,y,tW,HDR,'F');
+  fs(15);fw('bold');C(255,255,255);tx('COMMERCIAL INVOICE',ML+5,y+12);
+  fs(7);fw('normal');C(160,160,155);
+  const reason=v('ci-reason');const inco=v('ci-incoterm');
+  tx((reason?'Reason for export: '+reason:'')+(inco?' · Incoterms: '+inco:''),ML+5,y+19);
+  fs(6.5);C(115,115,110);tx('Currency: '+cur,ML+5,y+25.5);
+
+  const rX=ML+tW;
+  lw(0.2);F(253,253,251);S(205,205,200);bx(rX,y,rW,HDR,'FD');
+  const c1=rX+3,c2=rX+rW/2+2;
+  fs(6.5);fw('bold');C(118,118,112);
+  tx('INVOICE NUMBER',c1,y+6); tx('INVOICE DATE',c2,y+6);
+  fs(10);fw('bold');C(20,20,18);
+  tx(invNum,c1,y+13.5); tx(invDate,c2,y+13.5);
+  fs(6.5);fw('normal');C(118,118,112);
+  const bolRef=v('ci-bol-ref'),poRef=v('ci-po'),pmtTerms=v('ci-payment');
+  if(bolRef)tx('BOL Ref: '+bolRef,c1,y+20);
+  if(poRef)tx('PO: '+poRef,(bolRef?c2:c1),y+20);
+  if(pmtTerms)tx('Payment: '+pmtTerms,c1,y+26);
+
+  lw(0.25);S(0,0,0);C(20,20,18);y+=HDR+2;
+
+  // ── Seller / Buyer ────────────────────────────────────────────────
+  const hW=CW/2,partyH=52;
+  const parties=[
+    {label:'SELLER / EXPORTER',name:v('ci-sel-name'),addr:v('ci-sel-addr'),city:v('ci-sel-city'),state:v('ci-sel-state'),zip:v('ci-sel-zip'),country:v('ci-sel-country'),tax:v('ci-sel-tax')},
+    {label:'BUYER / IMPORTER', name:v('ci-buy-name'),addr:v('ci-buy-addr'),city:v('ci-buy-city'),state:v('ci-buy-state'),zip:v('ci-buy-zip'),country:v('ci-buy-country'),tax:v('ci-buy-tax')},
+  ];
+  parties.forEach((p,i)=>{
+    const px=ML+i*hW;
+    lw(0.15);F(238,238,235);S(215,215,210);bx(px,y,hW,6,'FD');
+    fs(6.5);fw('bold');C(108,108,102);tx(p.label,px+3,y+4.5);
+    lw(0.2);S(205,205,200);bx(px,y+6,hW,partyH-6,'S');
+    lw(0.25);S(0,0,0);C(20,20,18);
+    let ly=y+13;
+    if(p.name){fs(10);fw('bold');tx(p.name,px+3,ly);fw('normal');ly+=6.5;}
+    fs(8.5);C(38,38,36);
+    if(p.addr){tx(p.addr,px+3,ly);ly+=5;}
+    const cl=[p.city,p.state].filter(Boolean).join(', ')+(p.zip?'  '+p.zip:'');
+    if(cl.trim()){tx(cl,px+3,ly);ly+=5;}
+    if(p.country){tx(p.country,px+3,ly);ly+=5;}
+    if(p.tax){C(108,108,102);fs(8);tx('Tax ID: '+p.tax,px+3,ly);}
+    C(20,20,18);
+  });
+  y+=partyH+3;
+
+  // ── Line items table ──────────────────────────────────────────────
+  lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
+  fs(6.5);fw('bold');C(108,108,102);tx('LINE ITEMS',ML+3,y+4.5);
+  lw(0.25);S(0,0,0);C(20,20,18);y+=6;
+
+  const iC=[12,0,28,24,26,26]; // qty, desc, hs, origin, unit, total
+  iC[1]=CW-iC.reduce((a,b)=>a+b,0);
+  const iX=[ML]; iC.forEach((w,i)=>iX.push(iX[i]+w));
+  const iH=['QTY','DESCRIPTION OF GOODS','HS/HTS CODE','ORIGIN','UNIT PRICE','TOTAL'];
+  lw(0.1);F(232,232,229);S(205,205,200);bx(ML,y,CW,6.5,'FD');
+  fs(6.5);fw('bold');C(98,98,92);iH.forEach((h,i)=>tx(h,iX[i]+2,y+4.7));
+  lw(0.25);S(0,0,0);C(20,20,18);y+=6.5;
+
+  const ciRows=document.querySelectorAll('#ci-tbody tr');
+  const rowH=8; let subTotal=0; let hasCI=false;
+  ciRows.forEach((row,ri)=>{
+    const inp=row.querySelectorAll('input[type=number]');
+    const qty=parseFloat(inp[0]?.value)||0;
+    const unit=parseFloat(inp[1]?.value)||0;
+    const descInp=row.querySelector('input[type=text]');
+    const allInputs=row.querySelectorAll('input');
+    const desc=allInputs[1]?.value||'';
+    const hs=allInputs[2]?.value||'';
+    const origin=allInputs[3]?.value||'';
+    if(!qty&&!desc) return;
+    hasCI=true;
+    const lineTotal=qty*unit; subTotal+=lineTotal;
+    const cells=[qty?String(qty):'',desc,hs,origin,unit?fmt(unit).replace(cur+' ',''):'',lineTotal?fmt(lineTotal).replace(cur+' ',''):''];
+    if(ri%2===0){lw(0.1);F(252,252,250);S(232,232,229);bx(ML,y,CW,rowH,'FD');}
+    lw(0.15);S(205,205,200);doc.line(ML,y+rowH,ML+CW,y+rowH);
+    iC.forEach((cw,i)=>{if(i>0)doc.line(iX[i],y,iX[i],y+rowH);});
+    lw(0.25);S(0,0,0);C(20,20,18);fs(8.5);fw('normal');
+    cells.forEach((c,i)=>{
+      const align=i>=4?{align:'right',maxWidth:iC[i]-4}:{};
+      const clipped=doc.splitTextToSize(c,iC[i]-4)[0]||'';
+      if(i>=4) tx(clipped,iX[i]+iC[i]-2,y+5.5,{align:'right'});
+      else tx(clipped,iX[i]+2,y+5.5);
+    });
+    y+=rowH;
+  });
+  if(!hasCI){
+    lw(0.15);S(205,205,200);bx(ML,y,CW,rowH,'S');
+    C(168,168,162);fs(8);tx('No line items entered',ML+3,y+5.5);
+    lw(0.25);S(0,0,0);C(20,20,18);y+=rowH;
+  }
+
+  // Totals block
+  y+=2;
+  const freight=parseFloat(document.getElementById('ci-freight')?.value)||0;
+  const grandTotal=subTotal+freight;
+  const tRows=[
+    ['Subtotal',fmt(subTotal)],
+    ...(freight?[['Freight / Insurance',fmt(freight)]]:[] ),
+    ['TOTAL INVOICE VALUE',fmt(grandTotal)],
+  ];
+  const tbW=CW*0.45,tbX=ML+CW-tbW;
+  tRows.forEach((row,i)=>{
+    const isTotal=i===tRows.length-1;
+    if(isTotal){lw(0.2);F(22,22,20);bx(tbX,y,tbW,9,'F');}
+    else{lw(0.15);S(205,205,200);doc.line(tbX,y,tbX+tbW,y);}
+    fs(isTotal?8.5:8);fw(isTotal?'bold':'normal');
+    C(isTotal?255:80,isTotal?255:80,isTotal?255:75);
+    tx(row[0],tbX+3,y+(isTotal?6.5:5.5));
+    tx(row[1],tbX+tbW-3,y+(isTotal?6.5:5.5),{align:'right'});
+    C(20,20,18);
+    y+=isTotal?11:7;
+  });
+  y+=4;
+
+  // Additional details
+  const port=v('ci-port'),originCo=v('ci-origin-country'),notes=v('ci-notes');
+  if(port||originCo||notes){
+    lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
+    fs(6.5);fw('bold');C(108,108,102);tx('ADDITIONAL DETAILS',ML+3,y+4.5);
+    lw(0.25);S(0,0,0);C(20,20,18);y+=6;
+    lw(0.2);S(205,205,200);
+    const detH=((port||originCo)?7:0)+(notes?doc.splitTextToSize(notes,CW-6).length*4.5+4:0);
+    bx(ML,y,CW,Math.max(detH,10),'S');lw(0.25);S(0,0,0);C(20,20,18);
+    let dy=y+6;fs(8.5);fw('normal');C(38,38,36);
+    if(originCo){tx('Country of origin: '+originCo,ML+3,dy);dy+=5;}
+    if(port){tx('Port of entry: '+port,ML+3,dy);dy+=5;}
+    if(notes){
+      doc.splitTextToSize(notes,CW-6).forEach(l=>{tx(l,ML+3,dy);dy+=4.5;});
+    }
+    y+=Math.max(detH,10)+3;
+  }
+
+  // Certification / signature block
+  if(y+36>PH-MT){doc.addPage();y=MT;}
+  lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,6,'FD');
+  fs(6.5);fw('bold');C(108,108,102);tx('CERTIFICATION & AUTHORIZED SIGNATURE',ML+3,y+4.5);
+  lw(0.25);S(0,0,0);C(20,20,18);y+=6;
+  lw(0.2);S(205,205,200);bx(ML,y,CW,34,'S');lw(0.25);S(0,0,0);
+  fs(7);fw('normal');C(88,88,83);
+  const cert='I/We hereby certify that the information on this invoice is true and correct and that the contents of this shipment are as described above.';
+  doc.splitTextToSize(cert,CW-6).forEach((l,i)=>tx(l,ML+3,y+6+(i*4)));
+  const sl=y+21;lw(0.2);S(195,195,190);doc.line(ML+3,sl,ML+CW/2-5,sl);
+  C(128,128,122);fs(7);tx('Authorized signature & title',ML+3,sl+4);
+  doc.line(ML+CW/2+5,sl,ML+CW-3,sl);
+  tx('Date',ML+CW/2+5,sl+4);
+  C(20,20,18);y+=36+3;
+
+  // Footer
+  if(y+10>PH-MT){doc.addPage();y=MT;}
+  lw(0.15);S(205,205,200);doc.line(ML,y,ML+CW,y);y+=3;
+  fs(5.8);fw('normal');C(155,155,150);
+  tx('This commercial invoice is for customs purposes. The seller certifies that the goods described herein are of '+( originCo||'stated')+' origin and that the declared values are true and accurate to the best of the seller\'s knowledge.',ML,y);
+
+  doc.save((invNum!=='N/A'?invNum:'Invoice')+'_'+(v('ci-date')||'undated')+'.pdf');
+  showStatus('ci-status');
+}
+
+// ── CCI line items ────────────────────────────────────────────────────
+let cciRowIdx = 0;
+function cciAddRow() {
+  cciRowIdx++;
+  const id = 'ccir'+cciRowIdx;
+  const tbody = document.getElementById('cci-tbody');
+  const tr = document.createElement('tr');
+  tr.id = id;
+  tr.innerHTML = `
+    <td><input type="number" min="1" placeholder="1" oninput="cciRecalc()" style="width:38px;"></td>
+    <td><input type="text" placeholder="e.g. Automotive brake pads, steel"></td>
+    <td><input type="text" placeholder="8708.30.50" style="width:80px;"></td>
+    <td><input type="text" placeholder="US" style="width:60px;"></td>
+    <td><input type="number" min="0" step="0.01" placeholder="0.00" oninput="cciRecalc()" style="width:66px;text-align:right;"></td>
+    <td><input type="text" readonly style="width:80px;text-align:right;background:var(--surface-alt);color:var(--text-secondary);"></td>
+    <td><button class="remove-btn" onclick="cciRemoveRow('${id}')" title="Remove">x</button></td>
+  `;
+  tbody.appendChild(tr);
+  cciRecalc();
+}
+function cciRemoveRow(id) { document.getElementById(id)?.remove(); cciRecalc(); }
+function cciRecalc() {
+  const cur = v('cci-currency').split(' ')[0] || 'CAD';
+  let sub = 0;
+  document.querySelectorAll('#cci-tbody tr').forEach(row => {
+    const nums = row.querySelectorAll('input[type=number]');
+    const qty = parseFloat(nums[0]?.value)||0;
+    const unit = parseFloat(nums[1]?.value)||0;
+    const line = qty*unit; sub += line;
+    const tot = row.querySelector('input[readonly]');
+    if (tot) tot.value = line ? line.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
+  });
+  const freight = parseFloat(document.getElementById('cci-freight')?.value)||0;
+  const other   = parseFloat(document.getElementById('cci-other')?.value)||0;
+  const total   = sub+freight+other;
+  const fmt = n => cur+' '+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('cci-subtotal').textContent = sub ? fmt(sub) : '—';
+  document.getElementById('cci-total').textContent    = total ? fmt(total) : '—';
+}
+function clearCCI() {
+  document.querySelectorAll('#tab-cci input:not([readonly]), #tab-cci select, #tab-cci textarea').forEach(el => {
+    if (el.type==='date') el.value = new Date().toISOString().slice(0,10);
+    else el.value = '';
+  });
+  document.getElementById('cci-vendor-country') && (document.getElementById('cci-ven-country').value='United States');
+  document.getElementById('cci-con-country').value='Canada';
+  document.getElementById('cci-origin-country').value='United States';
+  document.getElementById('cci-tbody').innerHTML='';
+  cciRowIdx=0; cciRecalc(); cciAddRow();
+}
+
+// ── Generate Canadian Customs Invoice PDF ────────────────────────────
+function generateCCI() {
+  if (typeof window.jspdf==='undefined') { alert('PDF library loading, try again.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const {F,S,C,fw,fs,tx,bx,lw} = pdfHelpers(doc);
+  const PW=215.9,PH=279.4,ML=14,MT=14,CW=PW-ML*2;
+  let y=MT;
+
+  const invNum  = v('cci-number')||'N/A';
+  const invDate = fmtDate(v('cci-date'));
+  const cur     = v('cci-currency').split(' ')[0]||'CAD';
+  const fmt     = n => cur+' '+Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // helper: draw a labelled field cell
+  const cell = (label, val, x, cy, w, h=13) => {
+    lw(0.15); S(205,205,200); bx(x,cy,w,h,'S');
+    fs(6); fw('bold'); C(118,118,112); tx(label,x+2,cy+4);
+    fs(8.5); fw('normal'); C(20,20,18);
+    tx(doc.splitTextToSize(val||'—',w-4)[0]||'—', x+2, cy+10);
+  };
+
+  // ── HEADER ──────────────────────────────────────────────────────────
+  // Red top stripe (CBSA red #d42a2a)
+  lw(0.1); F(180,20,20); bx(ML,y,CW,7,'F');
+  fs(7); fw('bold'); C(255,255,255);
+  tx('CANADA BORDER SERVICES AGENCY  —  AGENCE DES SERVICES FRONTALIERS DU CANADA', ML+3, y+5);
+
+  y += 7;
+  // Dark title bar
+  F(22,22,20); bx(ML,y,CW*0.60,20,'F');
+  fs(12); fw('bold'); C(255,255,255); tx('CANADIAN CUSTOMS INVOICE', ML+4, y+9);
+  fs(7); fw('normal'); C(160,160,155); tx('FACTURE DES DOUANES CANADIENNES', ML+4, y+16);
+
+  // Right side: invoice # and date
+  const rX=ML+CW*0.60, rW=CW*0.40;
+  lw(0.2); F(253,253,251); S(205,205,200); bx(rX,y,rW,20,'FD');
+  const c1=rX+3, c2=rX+rW/2+2;
+  fs(6.5); fw('bold'); C(118,118,112);
+  tx('INVOICE NO.',c1,y+5.5); tx('DATE',c2,y+5.5);
+  fs(10); fw('bold'); C(20,20,18);
+  tx(invNum,c1,y+13); tx(invDate,c2,y+13);
+  lw(0.25); S(0,0,0); C(20,20,18);
+  y += 20+1;
+
+  // ── BOX 1: Vendor / Consignee / Sold-to row ─────────────────────────
+  const thirdW = CW/3;
+  // Vendor
+  lw(0.15); F(238,238,235); S(215,215,210); bx(ML,y,thirdW,5.5,'FD');
+  fs(6); fw('bold'); C(108,108,102); tx('1. VENDOR (Name and address)', ML+2, y+4);
+  lw(0.2); S(205,205,200); bx(ML,y+5.5,thirdW,34,'S');
+  let vy=y+11; lw(0.25); S(0,0,0); C(20,20,18);
+  if(v('cci-ven-name')){fs(9);fw('bold');tx(v('cci-ven-name'),ML+2,vy);fw('normal');vy+=5.5;}
+  fs(8); C(38,38,36);
+  if(v('cci-ven-addr')){tx(v('cci-ven-addr'),ML+2,vy);vy+=4.5;}
+  const vCityLine=[v('cci-ven-city'),v('cci-ven-state')].filter(Boolean).join(', ')+(v('cci-ven-zip')?' '+v('cci-ven-zip'):'');
+  if(vCityLine.trim()){tx(vCityLine,ML+2,vy);vy+=4.5;}
+  if(v('cci-ven-country')){C(108,108,102);fs(7.5);tx(v('cci-ven-country'),ML+2,vy);C(20,20,18);}
+
+  // Consignee
+  const conX=ML+thirdW;
+  lw(0.15); F(238,238,235); S(215,215,210); bx(conX,y,thirdW,5.5,'FD');
+  fs(6); fw('bold'); C(108,108,102); tx('2. CONSIGNEE (Name and address)', conX+2, y+4);
+  lw(0.2); S(205,205,200); bx(conX,y+5.5,thirdW,34,'S');
+  let cy2=y+11; lw(0.25); S(0,0,0); C(20,20,18);
+  if(v('cci-con-name')){fs(9);fw('bold');tx(v('cci-con-name'),conX+2,cy2);fw('normal');cy2+=5.5;}
+  fs(8); C(38,38,36);
+  if(v('cci-con-addr')){tx(v('cci-con-addr'),conX+2,cy2);cy2+=4.5;}
+  const cCityLine=[v('cci-con-city'),v('cci-con-prov')].filter(Boolean).join(', ')+(v('cci-con-postal')?' '+v('cci-con-postal'):'');
+  if(cCityLine.trim()){tx(cCityLine,conX+2,cy2);cy2+=4.5;}
+  if(v('cci-con-country')){C(108,108,102);fs(7.5);tx(v('cci-con-country'),conX+2,cy2);C(20,20,18);}
+
+  // Sold-to
+  const soldX=ML+thirdW*2;
+  lw(0.15); F(238,238,235); S(215,215,210); bx(soldX,y,thirdW,5.5,'FD');
+  fs(6); fw('bold'); C(108,108,102); tx('3. PURCHASER / SOLD TO (if different)', soldX+2, y+4);
+  lw(0.2); S(205,205,200); bx(soldX,y+5.5,thirdW,34,'S');
+  lw(0.25); S(0,0,0); C(20,20,18); fs(8.5); fw('normal');
+  const soldName=v('cci-sold-name'), soldAddr=v('cci-sold-addr');
+  if(soldName){fs(9);fw('bold');tx(soldName,soldX+2,y+11);fw('normal');}
+  if(soldAddr){fs(8);C(38,38,36);tx(soldAddr,soldX+2,y+(soldName?17:11));C(20,20,18);}
+  if(!soldName&&!soldAddr){fs(7.5);C(158,158,152);tx('Same as consignee',soldX+2,y+14);C(20,20,18);}
+
+  y+=39.5+1;
+
+  // ── BOX 2: Reference / transport row ────────────────────────────────
+  const q=CW/4;
+  cell('4. IMPORTER BUSINESS NUMBER (BN)', v('cci-importer-bn'), ML,       y, q);
+  cell('5. EXPORTER REFERENCE / BN',      v('cci-exporter-ref'),ML+q,     y, q);
+  cell('6. MODE OF TRANSPORT',            v('cci-transport'),   ML+q*2,   y, q);
+  cell('7. CONDITIONS OF SALE (Incoterms)',v('cci-conditions'),  ML+q*3,   y, q);
+  y+=15;
+
+  const half=CW/2;
+  cell('8. PORT / PLACE OF DIRECT SHIPMENT TO CANADA', v('cci-port'),         ML,    y, half);
+  cell('9. CURRENCY OF SETTLEMENT',                    cur,                    ML+half,y, half);
+  y+=15;
+
+  cell('10. COUNTRY OF ORIGIN OF GOODS', v('cci-origin-country'), ML,    y, half);
+  cell('11. TRADE AGREEMENT (if applicable)', v('cci-nafta')||'—', ML+half, y, half);
+  y+=15;
+
+  // PO ref and invoice date recap
+  cell('12. PURCHASE ORDER / REFERENCE', v('cci-po'), ML,    y, half);
+  cell('13. INVOICE DATE',               invDate,      ML+half,y, half);
+  y+=15+2;
+
+  // ── LINE ITEMS TABLE ─────────────────────────────────────────────────
+  lw(0.15); F(238,238,235); S(215,215,210); bx(ML,y,CW,5.5,'FD');
+  fs(6); fw('bold'); C(108,108,102);
+  tx('14. GOODS / MERCHANDISE', ML+2, y+4);
+  lw(0.25); S(0,0,0); C(20,20,18); y+=5.5;
+
+  const iC=[10,0,26,20,24,26];
+  iC[1]=CW-iC.reduce((a,b)=>a+b,0);
+  const iX=[ML]; iC.forEach((w,i)=>iX.push(iX[i]+w));
+  const iH=['QTY','FULL DESCRIPTION OF GOODS','HS/TARIFF CODE','ORIGIN','UNIT PRICE','TOTAL VALUE'];
+
+  lw(0.1); F(232,232,229); S(205,205,200); bx(ML,y,CW,6,'FD');
+  fs(6); fw('bold'); C(98,98,92); iH.forEach((h,i)=>tx(h,iX[i]+2,y+4.3));
+  lw(0.25); S(0,0,0); C(20,20,18); y+=6;
+
+  const cciRows=document.querySelectorAll('#cci-tbody tr');
+  const rowH=8; let subTotal=0; let hasCCI=false;
+  cciRows.forEach((row,ri)=>{
+    const nums=row.querySelectorAll('input[type=number]');
+    const qty=parseFloat(nums[0]?.value)||0;
+    const unit=parseFloat(nums[1]?.value)||0;
+    const allInp=row.querySelectorAll('input');
+    const desc=allInp[1]?.value||'';
+    const hs=allInp[2]?.value||'';
+    const origin=allInp[3]?.value||'';
+    if(!qty&&!desc) return;
+    hasCCI=true;
+    const lineTotal=qty*unit; subTotal+=lineTotal;
+    const cells=[qty?String(qty):'',desc,hs,origin,
+      unit?unit.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'',
+      lineTotal?lineTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):''
+    ];
+    if(ri%2===0){lw(0.1);F(252,252,250);S(232,232,229);bx(ML,y,CW,rowH,'FD');}
+    lw(0.15);S(205,205,200);doc.line(ML,y+rowH,ML+CW,y+rowH);
+    iC.forEach((cw,i)=>{if(i>0)doc.line(iX[i],y,iX[i],y+rowH);});
+    lw(0.25);S(0,0,0);C(20,20,18);fs(8);fw('normal');
+    cells.forEach((c,i)=>{
+      if(i>=4) tx(doc.splitTextToSize(c,iC[i]-4)[0]||'',iX[i]+iC[i]-2,y+5.5,{align:'right'});
+      else tx(doc.splitTextToSize(c,iC[i]-4)[0]||'',iX[i]+2,y+5.5);
+    });
+    y+=rowH;
+  });
+  if(!hasCCI){
+    lw(0.15);S(205,205,200);bx(ML,y,CW,rowH,'S');
+    C(168,168,162);fs(8);tx('No line items entered',ML+3,y+5.5);
+    lw(0.25);S(0,0,0);C(20,20,18);y+=rowH;
+  }
+
+  // ── TOTALS ────────────────────────────────────────────────────────────
+  y+=2;
+  const freightAmt=parseFloat(document.getElementById('cci-freight')?.value)||0;
+  const otherAmt  =parseFloat(document.getElementById('cci-other')?.value)||0;
+  const grandTotal=subTotal+freightAmt+otherAmt;
+  const tbW=CW*0.45, tbX=ML+CW-tbW;
+  const tRows=[
+    ['15a. Total value of goods',fmt(subTotal)],
+    ...(freightAmt?[['15b. Freight charges',fmt(freightAmt)]]:[] ),
+    ...(otherAmt?  [['15c. Other charges',  fmt(otherAmt)]]:[] ),
+    ['15d. TOTAL DUTIABLE VALUE',fmt(grandTotal)],
+  ];
+  tRows.forEach((row,i)=>{
+    const isTotal=i===tRows.length-1;
+    if(isTotal){lw(0.2);F(22,22,20);bx(tbX,y,tbW,9,'F');}
+    else{lw(0.15);S(205,205,200);doc.line(tbX,y,tbX+tbW,y);}
+    fs(isTotal?8:7.5); fw(isTotal?'bold':'normal');
+    C(isTotal?255:75,isTotal?255:75,isTotal?255:70);
+    tx(row[0],tbX+3,y+(isTotal?6.5:5.5));
+    tx(row[1],tbX+tbW-3,y+(isTotal?6.5:5.5),{align:'right'});
+    C(20,20,18); y+=isTotal?11:7;
+  });
+  y+=4;
+
+  // ── REMARKS ───────────────────────────────────────────────────────────
+  const notes=v('cci-notes');
+  if(notes){
+    lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,5.5,'FD');
+    fs(6);fw('bold');C(108,108,102);tx('16. REMARKS / SPECIAL DECLARATIONS',ML+2,y+4);
+    lw(0.25);S(0,0,0);C(20,20,18);y+=5.5;
+    const noteLines=doc.splitTextToSize(notes,CW-6);
+    const noteH=noteLines.length*4.5+5;
+    lw(0.2);S(205,205,200);bx(ML,y,CW,noteH,'S');lw(0.25);S(0,0,0);
+    fs(8.5);fw('normal');C(38,38,36);
+    noteLines.forEach((l,i)=>tx(l,ML+3,y+6+(i*4.5)));
+    y+=noteH+3;
+  }
+
+  // ── CERTIFICATION BLOCK ───────────────────────────────────────────────
+  if(y+40>PH-MT){doc.addPage();y=MT;}
+  lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,5.5,'FD');
+  fs(6);fw('bold');C(108,108,102);tx('17. CERTIFICATION',ML+2,y+4);
+  lw(0.25);S(0,0,0);C(20,20,18);y+=5.5;
+  lw(0.2);S(205,205,200);bx(ML,y,CW,36,'S');lw(0.25);S(0,0,0);
+  fs(7);fw('normal');C(75,75,70);
+  const cert='I/We hereby certify that the information on this invoice is true, correct and complete, and that the goods were produced in the country shown herein. If the goods are entitled to preferential tariff treatment, I/we also certify that they comply with all origin requirements under the applicable trade agreement.';
+  doc.splitTextToSize(cert,CW-6).forEach((l,i)=>tx(l,ML+3,y+6+(i*4)));
+  // Three signature lines
+  const sigW3=CW/3;
+  const sigY=y+26;
+  lw(0.2);S(195,195,190);
+  [[' Authorized signature',' Name / Title',' Date'].map((lbl,i)=>{
+    const sx=ML+i*sigW3;
+    doc.line(sx+3,sigY,sx+sigW3-3,sigY);
+    fs(6.5);fw('normal');C(128,128,122);tx(lbl,sx+3,sigY+4);
+  })];
+  y+=38+3;
+
+  // ── FOOTER ────────────────────────────────────────────────────────────
+  if(y+12>PH-MT){doc.addPage();y=MT;}
+  lw(0.15);S(205,205,200);doc.line(ML,y,ML+CW,y);y+=3;
+  fs(5.8);fw('normal');C(155,155,150);
+  tx('This document is prepared in accordance with CBSA requirements. False statements may result in penalties under the Customs Act. / Ce document est préparé conformément aux exigences de l\'ASFC.', ML, y);
+
+  doc.save((invNum!=='N/A'?invNum:'CCI')+'_'+(v('cci-date')||'undated')+'.pdf');
+  showStatus('cci-status');
+}
+
+// ── Init ─────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('ship-date').value = new Date().toISOString().slice(0,10);
-  addRow();
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('ship-date').value = today;
+  document.getElementById('ci-date').value = today;
+  document.getElementById('cci-date').value = today;
+  bolAddRow();
+  ciAddRow();
+  cciAddRow();
 });
 </script>
 </body>
