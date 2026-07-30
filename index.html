@@ -611,10 +611,8 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       CBSA / Customs details
     </div>
-    <div class="grid-3">
-      <div class="field"><label for="cci-origin-country">Country of origin of goods</label><input type="text" id="cci-origin-country" placeholder="United States" value="United States"></div>
-      <div class="field">
-        <label for="cci-nafta">Trade agreement</label>
+    <div class="grid-2">
+      <div class="field"><label for="cci-nafta">Trade agreement</label>
         <select id="cci-nafta" onchange="toggleCUSMAFields()">
           <option value="">None / not applicable</option>
           <option value="CUSMA/USMCA">CUSMA / USMCA (Canada-US-Mexico)</option>
@@ -1367,17 +1365,17 @@ function generateCCI() {
   });
   y+=partyBoxH+1;
 
-  // ── BOXES 4–13: Reference fields ─────────────────────────────────
+  // ── BOXES 4–11: Reference fields ─────────────────────────────────
   const q=CW/4, half=CW/2;
-  cell('4. MODE OF TRANSPORT',                  v('cci-transport'),       ML,      y, q);
-  cell('5. CONDITIONS OF SALE (Incoterms)',      v('cci-conditions'),      ML+q,    y, q);
-  cell('6. PORT / PLACE OF DIRECT SHIPMENT TO CANADA', v('cci-port'),    ML+q*2,  y, q*2);
+  cell('4. MODE OF TRANSPORT',                         v('cci-transport'),  ML,      y, q);
+  cell('5. CONDITIONS OF SALE (Incoterms)',             v('cci-conditions'), ML+q,    y, q);
+  cell('6. PORT / PLACE OF DIRECT SHIPMENT TO CANADA', v('cci-port'),       ML+q*2,  y, q*2);
   y+=16;
-  cell('7. CURRENCY OF SETTLEMENT',              cur,                      ML,      y, half);
-  cell('8. COUNTRY OF ORIGIN OF GOODS',          v('cci-origin-country'), ML+half, y, half);
+  cell('7. CURRENCY OF SETTLEMENT',                    cur,                 ML,      y, half);
+  cell('8. TRADE AGREEMENT (if applicable)',            v('cci-nafta')||'None', ML+half, y, half);
   y+=16;
-  cell('9. TRADE AGREEMENT (if applicable)',      v('cci-nafta')||'None',  ML,      y, half);
-  cell('10. PURCHASE ORDER / REFERENCE',          v('cci-po'),             ML+half, y, half);
+  cell('9. PURCHASE ORDER / REFERENCE',                v('cci-po'),         ML,      y, half);
+  cell('10. INVOICE DATE',                             invDate,             ML+half, y, half);
   y+=18;
 
   // ── BOX 14: LINE ITEMS TABLE ──────────────────────────────────────
