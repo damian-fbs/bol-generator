@@ -804,45 +804,45 @@ function clearCI() {
 // ── PDF helpers shared ────────────────────────────────────────────────
 // Colour palette — all RGB triples
 const PDF = {
-  // Header backgrounds
-  hdrDark:   [30, 50, 90],      // deep navy (replaces near-black)
-  hdrMid:    [245, 247, 252],   // very light blue-grey for right header zone
-  // Section label bars
-  secBg:     [225, 232, 245],   // soft blue-grey fill
-  secBorder: [180, 195, 225],   // medium blue-grey border
-  secText:   [40,  60, 110],    // dark navy label text — legible
+  // Header — white bg, black border, black text
+  hdrDark:   [255,255,255],   // was navy — now white (header bg)
+  hdrMid:    [255,255,255],   // right header zone — white
+  // Section label bars — light grey fill, dark text
+  secBg:     [230,230,230],   // light grey section bar
+  secBorder: [0,  0,  0],     // black border
+  secText:   [0,  0,  0],     // black label text
   // Field / cell borders
-  cellBorder:[170, 180, 200],   // medium grey-blue — visible but not heavy
-  cellLbl:   [80,  95, 130],    // dark slate — clearly readable field labels
+  cellBorder:[0,  0,  0],     // black cell borders
+  cellLbl:   [80, 80, 80],    // dark grey field labels
   // Body text
-  bodyDark:  [20,  20,  25],    // near-black for primary values
-  bodySub:   [55,  65,  80],    // dark slate for addresses / secondary
-  bodyMid:   [90, 100, 120],    // medium for phone / helper text
-  bodyFaint: [130,140, 160],    // light for placeholder hints
+  bodyDark:  [0,  0,  0],     // pure black primary text
+  bodySub:   [30, 30, 30],    // near-black secondary text
+  bodyMid:   [80, 80, 80],    // dark grey helper text
+  bodyFaint: [140,140,140],   // medium grey placeholder
   // Table
-  rowAlt:    [248, 250, 254],   // very light blue stripe
-  rowBorder: [200, 210, 228],   // table row dividers
-  colDiv:    [210, 218, 232],   // column dividers
-  tblHdrBg:  [210, 218, 235],   // table header row fill
-  tblHdrTxt: [30,  50,  90],    // table header text
-  // Totals bar
-  totBg:     [30,  50,  90],    // navy totals bar
-  totText:   [255,255,255],     // white totals text
-  totSubBg:  [235, 240, 250],   // light totals sub-rows
-  totSubTxt: [40,  55,  90],
+  rowAlt:    [245,245,245],   // very light grey alternating row
+  rowBorder: [0,  0,  0],     // black row dividers
+  colDiv:    [150,150,150],   // medium grey column dividers
+  tblHdrBg:  [200,200,200],   // medium grey table header fill
+  tblHdrTxt: [0,  0,  0],     // black table header text
+  // Totals
+  totBg:     [200,200,200],   // grey totals bar (replaces navy)
+  totText:   [0,  0,  0],     // black totals text
+  totSubBg:  [240,240,240],   // light grey sub-rows
+  totSubTxt: [0,  0,  0],     // black
   // Signature / footer
-  sigLine:   [160, 175, 205],   // signature underlines
-  sigLbl:    [90, 105, 135],    // signature labels
-  footerTxt: [120, 132, 155],   // footer legal text
-  footerLine:[190, 200, 220],   // footer rule
+  sigLine:   [0,  0,  0],     // black signature lines
+  sigLbl:    [80, 80, 80],    // dark grey signature labels
+  footerTxt: [100,100,100],   // medium grey footer text
+  footerLine:[0,  0,  0],     // black footer rule
   // PRO sticker
-  proStroke: [100, 130, 190],   // dashed border
-  proBg:     [240, 245, 255],   // sticker bg
-  proLbl:    [40,  60, 110],
-  proLine:   [160, 175, 210],
-  proHint:   [120, 140, 175],
-  // CBSA red stripe
-  cbsaRed:   [180, 20,  20],
+  proStroke: [0,  0,  0],     // black dashed border
+  proBg:     [245,245,245],   // light grey sticker bg
+  proLbl:    [0,  0,  0],     // black label
+  proLine:   [0,  0,  0],     // black write-in line
+  proHint:   [120,120,120],   // grey hint text
+  // CBSA (no longer used but kept for safety)
+  cbsaRed:   [0,  0,  0],
 };
 
 function pdfHelpers(doc) {
@@ -929,41 +929,45 @@ function generateBOL() {
   // ── HEADER ────────────────────────────────────────────────────────
   const HDR=30, tW=CW*0.40, mW=CW*0.23, pW=CW-tW-mW;
 
-  // Zone 1 — navy title
-  lw(0.3); F(...PDF.hdrDark); bx(ML,y,tW,HDR,'F');
-  fs(13); fw('bold'); C(255,255,255);
+  // Zone 1 — title box, white bg, black border
+  lw(0.5); S(0,0,0); F(255,255,255); bx(ML,y,tW,HDR,'FD');
+  fs(14); fw('bold'); C(0,0,0);
   tx('BILL OF LADING', ML+4, y+11);
-  fs(7.5); fw('normal'); C(180,200,240);
+  fs(7.5); fw('normal'); C(60,60,60);
   tx(shipType.toUpperCase(), ML+4, y+18.5);
-  fs(7); C(140,165,210);
+  fs(7); C(80,80,80);
   tx('CARRIER: '+(carrier||'—'), ML+4, y+25);
 
   // Zone 2 — BOL # and date
   const mX=ML+tW;
-  lw(0.4); F(...PDF.hdrMid); S(...PDF.secBorder); bx(mX,y,mW,HDR,'FD');
-  fs(7); fw('bold'); C(...PDF.cellLbl);
+  lw(0.5); F(255,255,255); S(0,0,0); bx(mX,y,mW,HDR,'FD');
+  // Dividing line between the two stacked fields
+  lw(0.3); S(160,160,160); doc.line(mX,y+HDR/2,mX+mW,y+HDR/2);
+  fs(6.5); fw('bold'); C(80,80,80);
   tx('BOL NUMBER', mX+3, y+6.5);
-  fs(12); fw('bold'); C(...PDF.bodyDark);
-  tx(bolNum, mX+3, y+14);
-  fs(7); fw('bold'); C(...PDF.cellLbl);
-  tx('SHIP DATE', mX+3, y+20.5);
-  fs(10.5); fw('bold'); C(...PDF.bodyDark);
-  tx(shipDate, mX+3, y+27.5);
+  fs(11); fw('bold'); C(0,0,0);
+  tx(bolNum, mX+3, y+13.5);
+  fs(6.5); fw('bold'); C(80,80,80);
+  tx('SHIP DATE', mX+3, y+HDR/2+5.5);
+  fs(10); fw('bold'); C(0,0,0);
+  tx(shipDate, mX+3, y+HDR/2+12.5);
 
-  // Zone 3 — PRO sticker
+  // Zone 3 — PRO sticker, dashed border
   const pX=ML+tW+mW;
-  doc.setLineDashPattern([2,1.4],0); S(...PDF.proStroke); lw(0.6);
+  doc.setLineDashPattern([2,1.4],0); S(0,0,0); lw(0.6);
   bx(pX,y,pW,HDR,'S');
-  doc.setLineDashPattern([],0); lw(0.3); S(...PDF.secBorder);
-  F(...PDF.proBg); bx(pX,y,pW,6.5,'FD');
-  fs(7); fw('bold'); C(...PDF.proLbl);
+  doc.setLineDashPattern([],0);
+  // Label bar inside
+  lw(0.3); S(160,160,160); F(230,230,230); bx(pX,y,pW,6.5,'FD');
+  fs(7); fw('bold'); C(0,0,0);
   tx('PRO NUMBER — AFFIX STICKER HERE', pX+3, y+5);
-  lw(0.4); S(...PDF.proLine);
+  // Write-in line
+  lw(0.4); S(0,0,0);
   doc.line(pX+4, y+HDR-7, pX+pW-4, y+HDR-7);
-  C(...PDF.proHint); fs(6.5); fw('normal');
+  C(120,120,120); fs(6.5); fw('normal');
   tx('Write PRO # if no sticker', pX+4, y+HDR-3);
 
-  lw(0.4); S(...PDF.cellBorder); C(...PDF.bodyDark); y+=HDR+2;
+  lw(0.5); S(0,0,0); C(0,0,0); y+=HDR+2;
 
   // ── META ROW ──────────────────────────────────────────────────────
   const mc=[CW*0.30,CW*0.26,CW*0.22,CW*0.22];
@@ -1130,27 +1134,28 @@ function generateCI() {
 
   // ── HEADER ────────────────────────────────────────────────────────
   const HDR=30, tW=CW*0.52, rW=CW-tW;
-  lw(0.3); F(...PDF.hdrDark); bx(ML,y,tW,HDR,'F');
-  fs(14); fw('bold'); C(255,255,255); tx('COMMERCIAL INVOICE', ML+5, y+12);
-  fs(7.5); fw('normal'); C(180,200,240);
+  lw(0.5); S(0,0,0); F(255,255,255); bx(ML,y,tW,HDR,'FD');
+  fs(14); fw('bold'); C(0,0,0); tx('COMMERCIAL INVOICE', ML+5, y+12);
+  fs(7.5); fw('normal'); C(60,60,60);
   const reason=v('ci-reason'), inco=v('ci-incoterm');
   tx((reason?'Export reason: '+reason:'')+(inco?' · '+inco:''), ML+5, y+19.5);
-  fs(7); C(140,165,210); tx('Currency: '+cur, ML+5, y+26);
+  fs(7); C(80,80,80); tx('Currency: '+cur, ML+5, y+26);
 
   const rX=ML+tW;
-  lw(0.4); F(...PDF.hdrMid); S(...PDF.secBorder); bx(rX,y,rW,HDR,'FD');
-  const c1=rX+3, c2=rX+rW/2+2;
-  fs(7); fw('bold'); C(...PDF.cellLbl);
+  lw(0.5); F(255,255,255); S(0,0,0); bx(rX,y,rW,HDR,'FD');
+  lw(0.3); S(160,160,160); doc.line(rX+rW/2, y, rX+rW/2, y+HDR);
+  const c1=rX+3, c2=rX+rW/2+3;
+  fs(7); fw('bold'); C(80,80,80);
   tx('INVOICE NUMBER', c1, y+6.5); tx('INVOICE DATE', c2, y+6.5);
-  fs(10.5); fw('bold'); C(...PDF.bodyDark);
+  fs(11); fw('bold'); C(0,0,0);
   tx(invNum, c1, y+14); tx(invDate, c2, y+14);
-  fs(7); fw('normal'); C(...PDF.cellLbl);
+  fs(7); fw('normal'); C(80,80,80);
   const bolRef=v('ci-bol-ref'), poRef=v('ci-po'), pmtTerms=v('ci-payment');
   if(bolRef) tx('BOL Ref: '+bolRef, c1, y+21);
   if(poRef)  tx('PO: '+poRef, (bolRef?c2:c1), y+21);
   if(pmtTerms) tx('Payment: '+pmtTerms, c1, y+27);
 
-  lw(0.4); S(...PDF.cellBorder); C(...PDF.bodyDark); y+=HDR+2;
+  lw(0.5); S(0,0,0); C(0,0,0); y+=HDR+2;
 
   // ── SELLER / BUYER ────────────────────────────────────────────────
   const hW=CW/2, partyH=52;
@@ -1357,20 +1362,20 @@ function generateCCI() {
   };
 
   // ── HEADER ────────────────────────────────────────────────────────
-  // Navy title bar across full width (no red CBSA stripe)
-  lw(0.3); F(...PDF.hdrDark); bx(ML,y,CW,26,'F');
-  fs(13); fw('bold'); C(255,255,255); tx('CANADIAN CUSTOMS INVOICE', ML+4, y+11);
-  fs(7.5); fw('normal'); C(180,200,240); tx('FACTURE DES DOUANES CANADIENNES', ML+4, y+19);
+  // Full-width title box — white bg, black border, no colour bars
+  lw(0.5); S(0,0,0); F(255,255,255); bx(ML,y,CW,26,'FD');
+  fs(13); fw('bold'); C(0,0,0); tx('CANADIAN CUSTOMS INVOICE', ML+4, y+11);
+  fs(7.5); fw('normal'); C(60,60,60); tx('FACTURE DES DOUANES CANADIENNES', ML+4, y+19);
 
+  // Right panel for invoice # and date — separated by vertical line
   const rX=ML+CW*0.60, rW=CW*0.40;
-  // Overlay light box on right portion of header for invoice # / date
-  lw(0.3); F(50,72,115); bx(rX,y,rW,26,'F');
+  lw(0.4); S(160,160,160); doc.line(rX, y, rX, y+26);
   const c1=rX+4, c2=rX+rW/2+2;
-  fs(7); fw('bold'); C(160,185,230);
+  fs(7); fw('bold'); C(80,80,80);
   tx('INVOICE NO.', c1, y+7); tx('DATE', c2, y+7);
-  fs(11); fw('bold'); C(255,255,255);
+  fs(11); fw('bold'); C(0,0,0);
   tx(invNum, c1, y+16); tx(invDate, c2, y+16);
-  lw(0.4); S(...PDF.cellBorder); C(...PDF.bodyDark);
+  lw(0.5); S(0,0,0); C(0,0,0);
   y+=26+2;
 
   // ── BOXES 1–3: Vendor / Consignee / Sold-to ──────────────────────
