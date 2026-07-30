@@ -533,10 +533,13 @@
     <div class="card">
       <div class="card-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        Consignee (Canadian Importer)
+        Consignee / Importer of Record
       </div>
-      <div class="field"><label for="cci-con-name">Company name</label><input type="text" id="cci-con-name" placeholder="Great Lakes Imports Ltd."></div>
-      <div class="field"><label for="cci-con-addr">Street address</label><input type="text" id="cci-con-addr" placeholder="789 Commerce Blvd"></div>
+      <div style="font-size:12px;color:var(--text-secondary);background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.6;">
+        <strong style="color:var(--text);">Drop-ship note:</strong> In a drop-ship arrangement, <em>you</em> are the importer of record even though goods go directly to your customer. Enter your company here. Customs duties and liability are yours. The declared value must be <strong>what you paid your supplier</strong> — not what your customer paid you.
+      </div>
+      <div class="field"><label for="cci-con-name">Company name</label><input type="text" id="cci-con-name" placeholder="Your company name"></div>
+      <div class="field"><label for="cci-con-addr">Street address</label><input type="text" id="cci-con-addr" placeholder="Your address"></div>
       <div class="grid-3">
         <div class="field"><label for="cci-con-city">City</label><input type="text" id="cci-con-city" placeholder="Windsor"></div>
         <div class="field"><label for="cci-con-prov">Province</label><input type="text" id="cci-con-prov" placeholder="ON" maxlength="2"></div>
@@ -544,7 +547,7 @@
       </div>
       <div class="grid-2" style="margin-top:4px;">
         <div class="field"><label for="cci-con-country">Country</label><input type="text" id="cci-con-country" placeholder="Canada" value="Canada"></div>
-        <div class="field"><label for="cci-importer-bn">Importer BN / Business Number</label><input type="text" id="cci-importer-bn" placeholder="e.g. 123456789 RM0001"></div>
+        <div class="field"><label for="cci-importer-bn">Your CRA Business Number (BN RM)</label><input type="text" id="cci-importer-bn" placeholder="e.g. 123456789 RM0001"></div>
       </div>
     </div>
   </div>
@@ -552,11 +555,14 @@
   <div class="card">
     <div class="card-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Sold-to party (if different from consignee)
+      Purchaser / Sold-to (your Canadian customer)
+    </div>
+    <div style="font-size:12px;color:var(--text-secondary);background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.6;">
+      This is the party receiving the physical goods — your customer. CBSA requires this when the ship-to address differs from the importer of record.
     </div>
     <div class="grid-2">
-      <div class="field"><label for="cci-sold-name">Company name</label><input type="text" id="cci-sold-name" placeholder="Leave blank if same as consignee"></div>
-      <div class="field"><label for="cci-sold-addr">Address</label><input type="text" id="cci-sold-addr" placeholder="Street, City, Province, Postal"></div>
+      <div class="field"><label for="cci-sold-name">Company / customer name</label><input type="text" id="cci-sold-name" placeholder="Your Canadian customer"></div>
+      <div class="field"><label for="cci-sold-addr">Full address (street, city, province, postal)</label><input type="text" id="cci-sold-addr" placeholder="Street, City, Province, Postal Code"></div>
     </div>
   </div>
 
@@ -609,7 +615,7 @@
       <div class="field"><label for="cci-origin-country">Country of origin of goods</label><input type="text" id="cci-origin-country" placeholder="United States" value="United States"></div>
       <div class="field">
         <label for="cci-nafta">Trade agreement</label>
-        <select id="cci-nafta">
+        <select id="cci-nafta" onchange="toggleCUSMAFields()">
           <option value="">None / not applicable</option>
           <option value="CUSMA/USMCA">CUSMA / USMCA (Canada-US-Mexico)</option>
           <option value="CETA">CETA (Canada-EU)</option>
@@ -618,11 +624,40 @@
           <option value="CKFTA">CKFTA (Canada-Korea)</option>
         </select>
       </div>
-      <div class="field"><label for="cci-exporter-ref">Exporter reference / BN</label><input type="text" id="cci-exporter-ref" placeholder="e.g. 987654321 RM0001"></div>
+      <div class="field"><label for="cci-exporter-ref">Exporter / supplier BN or EIN</label><input type="text" id="cci-exporter-ref" placeholder="e.g. 12-3456789 (US EIN)"></div>
     </div>
-    <div class="field" style="margin-bottom:0;">
+
+    <!-- CUSMA-specific fields, shown only when CUSMA selected -->
+    <div id="cusma-fields" style="display:none;margin-top:4px;">
+      <div style="font-size:12px;color:var(--text-secondary);background:#f0f7ff;border:1px solid #bdd4f5;border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.6;">
+        <strong style="color:var(--text);">CUSMA / USMCA — no separate form required.</strong> Since 2020 there is no mandatory Certificate of Origin. Instead, your US supplier must provide an <em>origin certification statement</em> — this can appear on their invoice to you or as a separate letter. You keep it on file for 5 years. The statement below will print in the Remarks section of your CCI.
+        <br><br>
+        <strong>Ask your supplier to confirm:</strong> the goods qualify under origin criterion B (tariff shift) or C (regional value content), and provide their company name, contact info, and HS code on the certification.
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="cci-cusma-criterion">CUSMA origin criterion</label>
+          <select id="cci-cusma-criterion">
+            <option value="A">A — Wholly obtained or produced in CUSMA territory</option>
+            <option value="B" selected>B — Produced entirely in CUSMA territory (tariff shift)</option>
+            <option value="C">C — Produced in CUSMA territory (regional value content)</option>
+            <option value="D">D — Unassembled goods / non-originating materials</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cci-cusma-blanket">Blanket period (if covering multiple shipments)</label>
+          <input type="text" id="cci-cusma-blanket" placeholder="e.g. Jan 1 2026 – Dec 31 2026">
+        </div>
+      </div>
+      <div class="field">
+        <label for="cci-cusma-certifier">Supplier / certifier name and contact (from their origin certification)</label>
+        <input type="text" id="cci-cusma-certifier" placeholder="e.g. John Smith, Acme Mfg, john@acme.com, (312) 555-0100">
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:0;margin-top:4px;">
       <label for="cci-notes">Remarks / special declarations</label>
-      <textarea id="cci-notes" placeholder="e.g. 'These goods are of US origin and qualify for preferential tariff treatment under CUSMA.'"></textarea>
+      <textarea id="cci-notes" placeholder="Any additional customs notes or declarations…"></textarea>
     </div>
   </div>
 
@@ -1138,6 +1173,12 @@ function generateCI() {
   showStatus('ci-status');
 }
 
+// ── CUSMA field toggle ────────────────────────────────────────────────
+function toggleCUSMAFields() {
+  const sel = document.getElementById('cci-nafta').value;
+  document.getElementById('cusma-fields').style.display = sel === 'CUSMA/USMCA' ? 'block' : 'none';
+}
+
 // ── CCI line items ────────────────────────────────────────────────────
 let cciRowIdx = 0;
 function cciAddRow() {
@@ -1369,17 +1410,36 @@ function generateCCI() {
   y+=4;
 
   // ── REMARKS ───────────────────────────────────────────────────────────
-  const notes=v('cci-notes');
-  if(notes){
-    lw(0.15);F(238,238,235);S(215,215,210);bx(ML,y,CW,5.5,'FD');
-    fs(6);fw('bold');C(108,108,102);tx('16. REMARKS / SPECIAL DECLARATIONS',ML+2,y+4);
-    lw(0.25);S(0,0,0);C(20,20,18);y+=5.5;
-    const noteLines=doc.splitTextToSize(notes,CW-6);
-    const noteH=noteLines.length*4.5+5;
-    lw(0.2);S(205,205,200);bx(ML,y,CW,noteH,'S');lw(0.25);S(0,0,0);
-    fs(8.5);fw('normal');C(38,38,36);
-    noteLines.forEach((l,i)=>tx(l,ML+3,y+6+(i*4.5)));
-    y+=noteH+3;
+  const notes = v('cci-notes');
+  const nafta = v('cci-nafta');
+  const cusmaCriterion  = v('cci-cusma-criterion');
+  const cusmaCertifier  = v('cci-cusma-certifier');
+  const cusmaBlanket    = v('cci-cusma-blanket');
+
+  // Build CUSMA origin certification statement if selected
+  let cusmaStatement = '';
+  if (nafta === 'CUSMA/USMCA') {
+    cusmaStatement =
+      'CUSMA/USMCA ORIGIN CERTIFICATION: I certify that the goods described in this invoice ' +
+      'are originating goods under the Canada-United States-Mexico Agreement (CUSMA/USMCA) ' +
+      'and qualify for preferential tariff treatment. ' +
+      'Origin criterion: ' + (cusmaCriterion || 'B') + '. ' +
+      (cusmaBlanket ? 'Blanket period: ' + cusmaBlanket + '. ' : '') +
+      (cusmaCertifier ? 'Certifier: ' + cusmaCertifier + '.' : '');
+  }
+
+  const fullRemarks = [cusmaStatement, notes].filter(Boolean).join(' | ');
+
+  if (fullRemarks) {
+    lw(0.15); F(238,238,235); S(215,215,210); bx(ML,y,CW,5.5,'FD');
+    fs(6); fw('bold'); C(108,108,102); tx('16. REMARKS / SPECIAL DECLARATIONS', ML+2, y+4);
+    lw(0.25); S(0,0,0); C(20,20,18); y+=5.5;
+    const noteLines = doc.splitTextToSize(fullRemarks, CW-6);
+    const noteH = noteLines.length*4.2+6;
+    lw(0.2); S(205,205,200); bx(ML,y,CW,noteH,'S'); lw(0.25); S(0,0,0);
+    fs(7.5); fw('normal'); C(38,38,36);
+    noteLines.forEach((l,i) => tx(l, ML+3, y+6+(i*4.2)));
+    y += noteH+3;
   }
 
   // ── CERTIFICATION BLOCK ───────────────────────────────────────────────
