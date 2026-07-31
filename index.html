@@ -69,6 +69,9 @@
   textarea { height: auto; min-height: 72px; resize: vertical; line-height: 1.5; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
   input[readonly] { background: var(--surface-alt); color: var(--text-secondary); cursor: default; }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b67' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
 
   /* ── Tables ── */
@@ -722,7 +725,7 @@ function bolAddRow() {
   const tr = document.createElement('tr');
   tr.id = id;
   tr.innerHTML = `
-    <td><input type="number" min="1" placeholder="1" oninput="bolRecalc()" style="width:48px;"></td>
+    <td><input type="number" min="1" placeholder="1" oninput="bolRecalc()" style="width:100%;"></td>
     <td><select style="width:96px;">${PKG_TYPES.map(p=>`<option>${p}</option>`).join('')}</select></td>
     <td><input type="text" placeholder="e.g. Auto parts, boxed"></td>
     <td><input type="number" min="0" step="0.1" placeholder="0" oninput="bolRecalc()" style="width:82px;"></td>
@@ -764,7 +767,7 @@ function ciAddRow() {
   const tr = document.createElement('tr');
   tr.id = id;
   tr.innerHTML = `
-    <td><input type="number" min="1" placeholder="1" oninput="ciRecalc()" style="width:58px;"></td>
+    <td><input type="number" min="1" placeholder="1" oninput="ciRecalc()" style="width:100%;"></td>
     <td><input type="text" placeholder="e.g. Automotive brake pads, boxed"></td>
     <td><input type="text" placeholder="e.g. 8708.30" style="width:86px;"></td>
     <td><input type="text" placeholder="US" style="width:68px;"></td>
@@ -1300,7 +1303,7 @@ function cciAddRow() {
   const tr = document.createElement('tr');
   tr.id = id;
   tr.innerHTML = `
-    <td><input type="number" min="1" placeholder="1" oninput="cciRecalc()" style="width:62px;"></td>
+    <td><input type="number" min="1" placeholder="1" oninput="cciRecalc()" style="width:100%;"></td>
     <td><input type="text" placeholder="e.g. Automotive brake pads, steel"></td>
     <td><input type="text" placeholder="8708.30.50" style="width:90px;"></td>
     <td><input type="text" placeholder="US" style="width:50px;"></td>
