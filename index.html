@@ -39,7 +39,7 @@
   .tab-panel.active { display: block; }
 
   /* ── Layout ── */
-  .main { max-width: 860px; margin: 0 auto; padding: 32px 24px 64px; }
+  .main { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
   .page-header { margin-bottom: 28px; }
   .page-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
   .page-header p { color: var(--text-secondary); font-size: 14px; }
@@ -351,15 +351,15 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         Seller / Exporter
       </div>
-      <div class="field"><label for="ci-sel-name">Company name</label><input type="text" id="ci-sel-name" placeholder="FBS Distribution Co. Inc."></div>
-      <div class="field"><label for="ci-sel-addr">Street address</label><input type="text" id="ci-sel-addr" placeholder="1110 - 572 Nicola Place"></div>
+      <div class="field"><label for="ci-sel-name">Company name</label><input type="text" id="ci-sel-name" placeholder="Acme Manufacturing"></div>
+      <div class="field"><label for="ci-sel-addr">Street address</label><input type="text" id="ci-sel-addr" placeholder="1234 Industrial Pkwy"></div>
       <div class="grid-3">
-        <div class="field"><label for="ci-sel-city">City</label><input type="text" id="ci-sel-city" placeholder="Port Coquitlam"></div>
-        <div class="field"><label for="ci-sel-state">State/Province</label><input type="text" id="ci-sel-state" placeholder="BC"></div>
-        <div class="field"><label for="ci-sel-zip">ZIP/Postal</label><input type="text" id="ci-sel-zip" placeholder="V3B 0K4"></div>
+        <div class="field"><label for="ci-sel-city">City</label><input type="text" id="ci-sel-city" placeholder="Chicago"></div>
+        <div class="field"><label for="ci-sel-state">State/Province</label><input type="text" id="ci-sel-state" placeholder="IL"></div>
+        <div class="field"><label for="ci-sel-zip">ZIP/Postal</label><input type="text" id="ci-sel-zip" placeholder="60601"></div>
       </div>
       <div class="grid-2" style="margin-top:4px;">
-        <div class="field"><label for="ci-sel-country">Country</label><input type="text" id="ci-sel-country" placeholder="Canada"></div>
+        <div class="field"><label for="ci-sel-country">Country</label><input type="text" id="ci-sel-country" placeholder="United States"></div>
         <div class="field"><label for="ci-sel-tax">Tax ID / EIN</label><input type="text" id="ci-sel-tax" placeholder="12-3456789"></div>
       </div>
     </div>
@@ -371,9 +371,9 @@
       <div class="field"><label for="ci-buy-name">Company name</label><input type="text" id="ci-buy-name" placeholder="Global Imports Ltd."></div>
       <div class="field"><label for="ci-buy-addr">Street address</label><input type="text" id="ci-buy-addr" placeholder="789 Commerce Blvd"></div>
       <div class="grid-3">
-        <div class="field"><label for="ci-buy-city">City</label><input type="text" id="ci-buy-city" placeholder="Chicago"></div>
-        <div class="field"><label for="ci-buy-state">State/Province</label><input type="text" id="ci-buy-state" placeholder="IL"></div>
-        <div class="field"><label for="ci-buy-zip">ZIP/Postal</label><input type="text" id="ci-buy-zip" placeholder="60601"></div>
+        <div class="field"><label for="ci-buy-city">City</label><input type="text" id="ci-buy-city" placeholder="Toronto"></div>
+        <div class="field"><label for="ci-buy-state">State/Province</label><input type="text" id="ci-buy-state" placeholder="ON"></div>
+        <div class="field"><label for="ci-buy-zip">ZIP/Postal</label><input type="text" id="ci-buy-zip" placeholder="M5H 2N2"></div>
       </div>
       <div class="grid-2" style="margin-top:4px;">
         <div class="field"><label for="ci-buy-country">Country</label><input type="text" id="ci-buy-country" placeholder="Canada"></div>
@@ -538,12 +538,12 @@
       <div style="font-size:12px;color:var(--text-secondary);background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.6;">
         <strong style="color:var(--text);">Drop-ship note:</strong> In a drop-ship arrangement, <em>you</em> are the importer of record even though goods go directly to your customer. Enter your company here. Customs duties and liability are yours. The declared value must be <strong>what you paid your supplier</strong> — not what your customer paid you.
       </div>
-      <div class="field"><label for="cci-con-name">Company name</label><input type="text" id="cci-con-name" placeholder="FBS Distribution Co. Inc."></div>
-      <div class="field"><label for="cci-con-addr">Street address</label><input type="text" id="cci-con-addr" placeholder="1110 - 572 Nicola Place"></div>
+      <div class="field"><label for="cci-con-name">Company name</label><input type="text" id="cci-con-name" placeholder="Your company name"></div>
+      <div class="field"><label for="cci-con-addr">Street address</label><input type="text" id="cci-con-addr" placeholder="Your address"></div>
       <div class="grid-3">
-        <div class="field"><label for="cci-con-city">City</label><input type="text" id="cci-con-city" placeholder="Port Coquitlam"></div>
-        <div class="field"><label for="cci-con-prov">Province</label><input type="text" id="cci-con-prov" placeholder="BC" maxlength="2"></div>
-        <div class="field"><label for="cci-con-postal">Postal code</label><input type="text" id="cci-con-postal" placeholder="V3B 0K4"></div>
+        <div class="field"><label for="cci-con-city">City</label><input type="text" id="cci-con-city" placeholder="Windsor"></div>
+        <div class="field"><label for="cci-con-prov">Province</label><input type="text" id="cci-con-prov" placeholder="ON" maxlength="2"></div>
+        <div class="field"><label for="cci-con-postal">Postal code</label><input type="text" id="cci-con-postal" placeholder="N9A 1A1"></div>
       </div>
       <div class="grid-2" style="margin-top:4px;">
         <div class="field"><label for="cci-con-country">Country</label><input type="text" id="cci-con-country" placeholder="Canada" value="Canada"></div>
@@ -577,7 +577,7 @@
     <div class="freight-wrap">
       <table class="ci-table">
         <thead><tr>
-          <th style="width:40px;">Qty</th>
+          <th style="width:62px;">Qty</th>
           <th>Description of goods</th>
           <th style="width:84px;">HS tariff code</th>
           <th style="width:66px;">Origin</th>
@@ -764,7 +764,7 @@ function ciAddRow() {
   const tr = document.createElement('tr');
   tr.id = id;
   tr.innerHTML = `
-    <td><input type="number" min="1" placeholder="1" oninput="ciRecalc()" style="width:40px;"></td>
+    <td><input type="number" min="1" placeholder="1" oninput="ciRecalc()" style="width:58px;"></td>
     <td><input type="text" placeholder="e.g. Automotive brake pads, boxed"></td>
     <td><input type="text" placeholder="e.g. 8708.30" style="width:86px;"></td>
     <td><input type="text" placeholder="US" style="width:68px;"></td>
@@ -1406,6 +1406,15 @@ function generateCCI() {
     const px=ML+i*thirdW;
     const maxW = thirdW-6;
     let ly=y+13;
+
+    // Sold-to box empty — print fallback text
+    if(i===2 && !p.name && !p.addr){
+      fs(8.5); fw('italic'); C(80,80,80);
+      tx('Same as consignee', px+3, ly);
+      fw('normal'); C(0,0,0);
+      return;
+    }
+
     if(p.name){
       fs(9); fw('bold'); C(0,0,0);
       const nameLines=doc.splitTextToSize(p.name, maxW);
